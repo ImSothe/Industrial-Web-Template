@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel de Taller · [YOUR_COMPANY]</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#07080a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2315181d'/%3E%3Cpath d='M7 22 25 10' stroke='%236eacdf' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <!-- ============ PUERTA DE ACCESO (Oficina Técnica) ============ -->
+  <div class="overlay is-open" id="authOverlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <form class="glass modal" id="authForm" style="max-width:400px">
+      <div class="success-icon" style="background:radial-gradient(circle, rgba(110,172,223,.25), transparent 70%); border-color:rgba(110,172,223,.5)" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#6eacdf" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      </div>
+      <h2 id="authTitle">Panel de Taller</h2>
+      <p class="muted" style="font-size:14px;margin:4px 0 20px">Acceso restringido a Oficina Técnica.</p>
+      <div class="form-field" style="text-align:left">
+        <label for="authPassword">Contraseña</label>
+        <input class="input" type="password" id="authPassword" autocomplete="current-password" autofocus>
+        <span class="error-text" id="authError" style="display:block"></span>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:16px">Entrar</button>
+      <p class="help-text"><a href="index.html">← Volver a la web pública</a></p>
+    </form>
+  </div>
+
+  <!-- ============ APP (oculta hasta autenticar) ============ -->
+  <div id="employeeApp" hidden>
+    <header class="site-header is-scrolled">
+      <a href="index.html" class="brand" aria-label="[YOUR_COMPANY] inicio"><span class="brand-mark"></span>[YOUR_COMPANY]</a>
+      <nav class="nav" aria-label="Principal">
+        <span class="mode-badge is-prod">Panel de Taller</span>
+        <span class="mono muted" id="tariffStamp" style="font-size:11px"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="logoutBtn">Cerrar sesión</button>
+      </nav>
+    </header>
+
+    <main class="section configurator" style="min-height:100vh">
+      <div class="container config-layout">
+        <div class="config-intro">
+          <span class="eyebrow">Oficina Técnica</span>
+          <h2 class="h2">Generador de<br>archivos de fabricación.</h2>
+          <p class="lead">Misma lógica de precio y enrutado que el configurador público, con exportación real de geometría 2D/3D para volcar a máquina.</p>
+
+          <div class="viewer-3d glass" id="viewerWrap">
+            <canvas id="employeeCanvas"></canvas>
+            <div class="viewer-external-tag" id="externalTag" hidden>
+              <span class="dot" aria-hidden="true"></span>
+              <span>Modelo externo · <b id="externalName"></b></span>
+            </div>
+            <div class="viewer-controls" role="group" aria-label="Rotación de la vista 3D">
+              <button type="button" class="viewer-rotate-btn" data-rotate="on" title="Girar la pieza automáticamente">▶ Rotar</button>
+              <button type="button" class="viewer-rotate-btn is-active" data-rotate="off" title="Detener el giro automático">⏸ Pausar</button>
+            </div>
+          </div>
+          <p class="help-text" style="margin-top:-14px">Arrastra sobre la pieza para orbitar (también mientras gira) · rueda del ratón para acercar/alejar.</p>
+
+          <div class="machine-badge" id="machineBadge"></div>
+          <ul class="spec-list">
+            <li>Línea A <b>hasta 3000 × 2500 mm</b></li>
+            <li>Línea B <b>hasta 6000 × 2500 mm</b></li>
+          </ul>
+        </div>
+
+        <form class="glass config-panel" id="configForm" novalidate autocomplete="off">
+          <div class="panel-head">
+            <h3>Configurar pieza</h3>
+            <span class="mono muted" style="font-size:12px" id="weightBadge">— kg/ud</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="reference">Referencia de la pieza</label>
+            <input class="input" id="reference" name="reference" maxlength="60" placeholder="p. ej. Soporte motor v2">
+          </div>
+
+          <fieldset class="field-group">
+            <legend>Material</legend>
+            <div class="seg" id="materialOptions"><!-- JS --></div>
+          </fieldset>
+          <fieldset class="field-group">
+            <legend>Acabado / color</legend>
+            <div class="swatches" id="finishOptions"><!-- JS --></div>
+            <div class="finish-name" id="finishName"></div>
+          </fieldset>
+
+          <div class="field-group field-row">
+            <div>
+              <label class="field-label" for="thickness">Espesor</label>
+              <select class="select" id="thickness" name="thickness"><!-- JS --></select>
+            </div>
+            <div>
+              <label class="field-label" for="quantity">Cantidad</label>
+              <div class="input-suffix"><input class="input" type="number" id="quantity" name="quantity" min="1" step="1" inputmode="numeric"><span>uds</span></div>
+            </div>
+          </div>
+
+          <div class="field-group field-row">
+            <div>
+              <label class="field-label" for="width">Ancho (desarrollo)</label>
+              <div class="input-suffix"><input class="input" type="number" id="width" name="width" step="1" inputmode="decimal"><span>mm</span></div>
+            </div>
+            <div>
+              <label class="field-label" for="length">Largo</label>
+              <div class="input-suffix"><input class="input" type="number" id="length" name="length" step="1" inputmode="decimal"><span>mm</span></div>
+            </div>
+          </div>
+          <p class="error-text" id="dimError" role="alert"></p>
+
+          <fieldset class="field-group">
+            <legend>Pliegues <span class="muted" style="text-transform:none;font-family:var(--font);font-size:12px">— encadena uno sobre otro</span></legend>
+            <div id="bendsList"><!-- JS --></div>
+            <button type="button" class="btn btn-ghost btn-sm btn-block" id="addBend">+ Añadir pliegue</button>
+          </fieldset>
+
+          <fieldset class="field-group">
+            <legend>Cortes <span class="muted" style="text-transform:none;font-family:var(--font);font-size:12px">— posición libre (X, Y, ángulo)</span></legend>
+            <div id="cutsList"><!-- JS --></div>
+            <button type="button" class="btn btn-ghost btn-sm btn-block" id="addCut">+ Añadir corte</button>
+          </fieldset>
+
+
+          <div class="field-group">
+            <label class="field-label" for="notes">Notas internas</label>
+            <textarea class="textarea" id="notes" name="notes" maxlength="1000" placeholder="Observaciones de programación CNC…"></textarea>
+          </div>
+
+          <!-- Precio (referencia interna) -->
+          <div class="price-box" aria-live="polite">
+            <div class="price-main">
+              <div>
+                <small>Total piezas (sin IVA)</small>
+                <div class="price" id="priceTotal">—</div>
+              </div>
+              <div style="text-align:right">
+                <small>Precio unitario</small>
+                <div class="mono" id="priceUnit" style="font-size:18px">—</div>
+              </div>
+            </div>
+            <div class="price-meta">
+              <span>Peso total <b id="metaWeight">—</b></span>
+              <span>Área <b id="metaArea">—</b></span>
+              <span>Perímetro <b id="metaPerimeter">—</b></span>
+            </div>
+          </div>
+
+          <!-- Visor de archivos externos (SOLO en este panel restringido) -->
+          <fieldset class="field-group external-loader" id="externalLoader">
+            <legend>Visor de archivos externos</legend>
+            <p class="help-text" style="margin-top:0">Abre un modelo 3D recibido de un cliente o de otro CAD para revisarlo en el visor. Se asume milímetros y eje Z hacia arriba.</p>
+            <input type="file" id="externalFile" accept=".stl,model/stl,application/sla,application/vnd.ms-pki.stl" hidden>
+            <div class="external-actions">
+              <label for="externalFile" class="btn btn-ghost btn-sm" id="externalPick" role="button" tabindex="0">⤒ Cargar modelo externo .stl</label>
+              <button type="button" class="btn btn-ghost btn-sm" id="externalBack" hidden>↺ Volver al diseño paramétrico</button>
+            </div>
+            <div class="external-info mono" id="externalInfo" aria-live="polite"></div>
+          </fieldset>
+
+          <!-- Exportación de archivos (SOLO en este panel restringido) -->
+          <div class="actions">
+            <div class="employee-downloads">
+              <span class="label">Exportar geometría</span>
+              <button type="button" class="btn btn-ghost btn-sm" id="dlPlan" aria-disabled="true" title="Desactivado en la plantilla pública" style="opacity:.5">⤓ Plano 2D (DXF)</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="dlStl" aria-disabled="true" title="Desactivado en la plantilla pública" style="opacity:.5">⤓ Modelo 3D (STL)</button>
+              <button type="button" class="btn btn-ghost btn-sm" id="dlGlb" aria-disabled="true" title="Desactivado en la plantilla pública" style="opacity:.5">⤓ Modelo 3D (GLB)</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span>Panel interno · No indexado · <span id="companyLegal"></span></span>
+        <span class="mono">Tarifas: SQLpyme (ERP)</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth-policy.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/polygon-clipping@0.15.7/dist/polygon-clipping.umd.min.js"></script>
+  <script src="js/geometry-engine.js"></script>
+  <script src="js/pricing.js"></script>
+  <script src="js/sqlpyme-api.js"></script>
+  <script src="js/plan-generator.js"></script>
+  <script src="js/employee-viewer.js" type="module"></script>
+  <script src="js/employee.js" defer></script>
+</body>
+</html>
