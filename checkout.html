@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Checkout · [YOUR_COMPANY]</title>
+  <meta name="description" content="Finaliza tu pedido de piezas de chapa: facturación B2B, pago con tarjeta o a 60 días y tramitación automática con fábrica.">
+  <meta name="theme-color" content="#07080a">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2315181d'/%3E%3Cpath d='M7 22 25 10' stroke='%236eacdf' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="site-header is-scrolled">
+    <a href="index.html" class="brand" aria-label="[YOUR_COMPANY] inicio"><span class="brand-mark"></span>[YOUR_COMPANY]</a>
+    <nav class="nav" aria-label="Principal">
+      <a href="index.html#configurator" class="btn btn-ghost btn-sm">← Añadir otra pieza</a>
+    </nav>
+  </header>
+
+  <main class="checkout-page">
+    <div class="checkout-head">
+      <span class="eyebrow">Checkout seguro</span>
+      <h1 class="h2">Finaliza tu pedido</h1>
+      <div class="steps" aria-label="Pasos">
+        <span class="is-active">1 · Carrito</span>
+        <span class="is-active">2 · Facturación</span>
+        <span class="is-active">3 · Pago</span>
+        <span>4 · Fábrica</span>
+      </div>
+    </div>
+
+    <form id="checkoutForm" class="checkout-grid" novalidate>
+      <div class="checkout-main">
+
+        <!-- ============ FACTURACIÓN ============ -->
+        <section class="glass card-section" aria-labelledby="billingTitle">
+          <h2 id="billingTitle"><span class="num">01</span>Datos de facturación</h2>
+          <p>Emitiremos la factura a nombre de la empresa. Todos los campos marcados con <span class="accent">*</span> son obligatorios.</p>
+          <div class="form-grid" id="billingFields"><!-- Renderizado desde BILLING_FIELDS (js/config.js) --></div>
+        </section>
+
+        <!-- ============ PAGO ============ -->
+        <section class="glass card-section" aria-labelledby="payTitle">
+          <h2 id="payTitle"><span class="num">02</span>Método de pago</h2>
+          <p>Elige cómo quieres pagar. Los datos de tarjeta nunca salen de tu navegador en esta demo.</p>
+
+          <div class="pay-tabs" role="radiogroup" aria-label="Método de pago">
+            <input type="radio" name="paymentMethod" id="pm_card" value="card" checked>
+            <label for="pm_card"><b>💳 Tarjeta</b><small>Visa · Mastercard · Amex</small></label>
+            <input type="radio" name="paymentMethod" id="pm_net60" value="net60">
+            <label for="pm_net60"><b>🧾 Pago a 60 días</b><small id="net60Label">Transferencia · clientes B2B</small></label>
+          </div>
+
+          <!-- Tarjeta -->
+          <div id="cardPanel">
+            <div class="card-visual-wrap" aria-hidden="true">
+              <div class="card-visual" id="cardVisual">
+                <div class="front">
+                  <div class="chip-img"></div>
+                  <div class="brand-logo" id="cvBrand">CARD</div>
+                  <div class="num" id="cvNumber">•••• •••• •••• ••••</div>
+                  <div class="row">
+                    <div class="holder"><small>Titular</small><span id="cvHolder">NOMBRE APELLIDO</span></div>
+                    <div><small>Caduca</small><span id="cvExp">MM/AA</span></div>
+                  </div>
+                </div>
+                <div class="back"><div class="stripe"></div><div class="cvc" id="cvCvc">•••</div></div>
+              </div>
+            </div>
+
+            <div class="stripe-fields" id="cardFields">
+              <input class="input" id="cardName" name="cardName" autocomplete="cc-name" placeholder="Titular de la tarjeta" aria-label="Titular de la tarjeta">
+              <div class="num-wrap">
+                <input class="input" id="cardNumber" name="cardNumber" inputmode="numeric" autocomplete="cc-number" placeholder="1234 1234 1234 1234" aria-label="Número de tarjeta" maxlength="23">
+                <span class="brand-tag" id="brandTag"></span>
+              </div>
+              <div class="split">
+                <input class="input" id="cardExp" name="cardExp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM / AA" aria-label="Fecha de caducidad" maxlength="7">
+                <input class="input" id="cardCvc" name="cardCvc" inputmode="numeric" autocomplete="cc-csc" placeholder="CVC" aria-label="CVC" maxlength="4">
+              </div>
+            </div>
+            <p class="error-text" id="cardError" role="alert"></p>
+            <p class="demo-hint">Pasarela de prueba: usa 4242 4242 4242 4242 · cualquier fecha futura · CVC 123. (4000 0000 0000 0002 = tarjeta rechazada)</p>
+            <div class="secure-note">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              Pago cifrado TLS · Preparado para Stripe Payment Element
+            </div>
+          </div>
+
+          <!-- Pago a 60 días -->
+          <div id="net60Panel" hidden>
+            <div class="net60-box">
+              <b>Pago aplazado a 60 días fecha factura</b>
+              <ul>
+                <li>Sujeto a aprobación de riesgo por nuestro departamento financiero.</li>
+                <li>Recargo financiero: <b id="net60Pct"></b> sobre la base imponible.</li>
+                <li>Recibirás la factura con los datos bancarios para la transferencia.</li>
+              </ul>
+            </div>
+            <label class="check"><input type="checkbox" id="net60Accept"> Acepto las condiciones de pago aplazado y confirmo que la empresa está al corriente de pagos.</label>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============ RESUMEN ============ -->
+      <aside class="glass summary" aria-labelledby="summaryTitle">
+        <h2 id="summaryTitle">Resumen del pedido</h2>
+        <ul class="cart-list" id="cartList"></ul>
+        <div class="empty-state" id="emptyState" hidden>
+          <p>Tu carrito está vacío.</p>
+          <a class="btn btn-primary btn-sm" href="index.html#configurator">Configurar una pieza</a>
+        </div>
+
+        <div class="totals" id="totals">
+          <div><span>Subtotal piezas</span><span id="tSubtotal">—</span></div>
+          <div><span>Portes</span><span id="tShipping">—</span></div>
+          <div id="tSurchargeRow" hidden><span>Recargo pago 60 días</span><span id="tSurcharge">—</span></div>
+          <div><span>Base imponible</span><span id="tBase">—</span></div>
+          <div><span id="tVatLabel">IVA</span><span id="tVat">—</span></div>
+          <div class="grand"><span>Total</span><span id="tTotal">—</span></div>
+          <div><span class="muted" style="font-size:12px">Peso estimado</span><span class="muted" id="tWeight" style="font-size:12px">—</span></div>
+        </div>
+
+        <label class="check"><input type="checkbox" id="acceptTerms"> Acepto las condiciones generales de venta y la política de privacidad.</label>
+        <p class="error-text" id="termsError" role="alert"></p>
+
+        <button type="submit" class="btn btn-primary btn-block" id="payBtn" style="margin-top:16px">
+          <span class="spinner" aria-hidden="true"></span>
+          <span class="btn-label" id="payLabel">Pagar</span>
+        </button>
+        <p class="help-text">Al confirmar, la documentación técnica se envía automáticamente a nuestra Oficina Técnica y a la línea de producción asignada.</p>
+      </aside>
+    </form>
+  </main>
+
+  <!-- Overlay de proceso -->
+  <div class="overlay" id="processOverlay" role="dialog" aria-modal="true" aria-labelledby="processTitle">
+    <div class="glass modal">
+      <h2 id="processTitle">Procesando pedido…</h2>
+      <p class="muted" style="margin:0">No cierres esta ventana.</p>
+      <ul class="process-steps" id="processSteps">
+        <li data-step="validate"><span class="st"></span>Validando datos de facturación</li>
+        <li data-step="payment"><span class="st"></span>Autorizando pago</li>
+        <li data-step="package"><span class="st"></span>Preparando documentación técnica</li>
+        <li data-step="send"><span class="st"></span>Enviando a Oficina Técnica</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Modal de éxito -->
+  <div class="overlay" id="successOverlay" role="dialog" aria-modal="true" aria-labelledby="successTitle">
+    <div class="glass modal">
+      <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h2 id="successTitle">Pedido procesado. Tu fabricación ya está en marcha.</h2>
+      <p class="order-id" id="successOrderId"></p>
+      <p class="muted" id="successText" style="font-size:14px;margin:8px 0 0"></p>
+      <div class="sent-list" id="sentList"></div>
+      <div style="display:grid;gap:10px">
+        <a href="index.html" class="btn btn-primary btn-block">Volver al inicio</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© <span id="year"></span> <span id="companyLegal"></span></span>
+      <span class="mono" id="companyContact"></span>
+    </div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/polygon-clipping@0.15.7/dist/polygon-clipping.umd.min.js"></script>
+  <script src="js/geometry-engine.js"></script>
+  <script src="js/pricing.js"></script>
+  <script src="js/sqlpyme-api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/plan-generator.js"></script>
+  <script src="js/email-service.js"></script>
+  <script src="js/checkout.js"></script>
+  <script src="js/checkout-export.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>[YOUR_COMPANY] · Piezas de chapa a medida para empresas</title>
+  <meta name="description" content="Configura tu pieza de chapa a medida, obtén el precio al instante y tramita el pedido directamente con fábrica. Corte limpio sin rebabas, tolerancias milimétricas, piezas listas para plegar o soldar.">
+  <meta name="theme-color" content="#07080a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2315181d'/%3E%3Cpath d='M7 22 25 10' stroke='%236eacdf' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/fx.css">
+
+  <!-- Three.js (ES Modules) vía CDN -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <canvas id="webgl" aria-hidden="true"></canvas>
+
+  <div class="loader" id="loader" role="status" aria-live="polite">
+    <div class="loader-inner">
+      <div class="brand" style="justify-content:center"><span class="brand-mark"></span>[YOUR_COMPANY]</div>
+      <div class="loader-bar"><span></span></div>
+      <p class="muted mono" style="font-size:11px;margin-top:12px;letter-spacing:.12em">CALIBRANDO LÁSER…</p>
+    </div>
+  </div>
+
+  <!-- ================= HEADER ================= -->
+  <header class="site-header" id="siteHeader">
+    <a href="index.html" class="brand" aria-label="[YOUR_COMPANY] inicio"><span class="brand-mark"></span>[YOUR_COMPANY]</a>
+    <nav class="nav" aria-label="Principal">
+      <a class="nav-link" href="#laser">Corte</a>
+      <a class="nav-link" href="#fold">Plegado</a>
+      <a class="nav-link" href="#configurator">Configurador</a>
+      <a class="cart-btn" href="checkout.html" aria-label="Ver carrito">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
+        <span>Carrito</span>
+        <span class="cart-count" id="cartCount" data-count="0">0</span>
+      </a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ================= 1 · HERO ================= -->
+    <section class="section hero" id="hero">
+      <div class="container" style="width:100%">
+        <div class="hero-content">
+          <span class="eyebrow">Fabricación de chapa a medida · B2B</span>
+          <h1 class="display"><span class="grad">Piezas de chapa,</span><br><span class="hot">perfectas a la primera.</span></h1>
+          <p class="lead">Configura tu pieza, obtén el precio al instante y tramita el pedido directamente con fábrica. Sin presupuestos eternos, sin sorpresas.</p>
+          <div class="hero-cta">
+            <a href="#configurator" class="btn btn-primary">Configurar mi pieza <span aria-hidden="true">→</span></a>
+            <a href="#laser" class="btn btn-ghost">Ver cómo trabajamos</a>
+          </div>
+          <div class="hero-stats">
+            <div><strong>Corte limpio</strong><span>Sin rebabas</span></div>
+            <div><strong>Tolerancias</strong><span>Milimétricas</span></div>
+            <div><strong>Listas para</strong><span>Plegar o soldar</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-hint" aria-hidden="true">Scroll<i></i></div>
+    </section>
+
+    <!-- ================= 2 · LÁSER ================= -->
+    <section class="section story" id="laser">
+      <div class="story-sticky container">
+        <div class="story-card">
+          <span class="eyebrow">01 — Corte de precisión</span>
+          <h2 class="h2">Corte limpio.<br>Cero rebabas.</h2>
+          <p class="lead">Cada contorno se corta con precisión milimétrica: contornos, taladros y ventanas en una sola pasada, listos para plegar o soldar sin retrabajo.</p>
+          <ul class="spec-list">
+            <li>Corte limpio <b>sin rebabas</b></li>
+            <li>Tolerancias <b>milimétricas</b></li>
+            <li>Trazabilidad <b>de cada pieza</b></li>
+          </ul>
+          <div class="readout" aria-live="off">
+            <span class="dot"></span>
+            <span>CORTE <b id="cutPct">0%</b></span>
+            <span>ACABADO <b>Sin rebabas</b></span>
+          </div>
+          <div class="progress-track"><span id="cutBar"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 3 · PLEGADO ================= -->
+    <section class="section story story--right" id="fold">
+      <div class="story-sticky container">
+        <div class="story-card">
+          <span class="eyebrow">02 — Plegado de precisión</span>
+          <h2 class="h2">De plano a<br>pieza terminada.</h2>
+          <p class="lead">Plegamos con ángulos exactos y repetibilidad total entre unidades, para que cada lote encaje igual que el primero.</p>
+          <ul class="spec-list">
+            <li>Ángulos <b>exactos</b></li>
+            <li>Repetibilidad <b>entre lotes</b></li>
+            <li>Sin marcas <b>de utillaje</b></li>
+          </ul>
+          <div class="readout" aria-live="off">
+            <span class="dot dot--cyan"></span>
+            <span>ÁNGULO <b id="foldAngle">0°</b></span>
+            <span>PLIEGUES <b>2</b></span>
+          </div>
+          <div class="progress-track progress-track--cyan"><span id="foldBar"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 4 · CONFIGURADOR ================= -->
+    <section class="section configurator" id="configurator">
+      <div class="container config-layout">
+        <div class="config-intro config-intro--live reveal">
+          <span class="eyebrow">03 — Configurador</span>
+          <h2 class="h2">Tu pieza.<br>Tu precio. Ahora.</h2>
+          <p class="lead">Ajusta material, espesor, cortes, pliegues y acabado. El visor 3D y el presupuesto se actualizan en tiempo real.</p>
+          <div class="viewer-hints">
+            <span class="chip">Vista 3D en vivo</span>
+            <span class="chip">Plano de fabricación incluido</span>
+            <span class="chip">Precio sin IVA</span>
+          </div>
+          <!-- Visor 3D del configurador: caja EN EL FLUJO del documento, siempre
+               debajo de los textos. La pieza se encuadra y se recorta a esta
+               caja (ver fitConfigView / tick en el módulo de abajo). -->
+          <div class="config-viewer" id="configViewer" data-lenis-prevent data-cursor="Arrastra" role="img" aria-label="Vista 3D interactiva de tu pieza">
+            <span class="config-viewer-hint mono">Arrastra para girar · rueda para zoom</span>
+            <div class="viewer-controls" id="viewerControls" role="group" aria-label="Rotación de la vista 3D">
+              <button type="button" class="viewer-rotate-btn" data-rotate="on" title="Girar la pieza automáticamente">▶ Rotar</button>
+              <button type="button" class="viewer-rotate-btn is-active" data-rotate="off" title="Detener el giro automático">⏸ Pausar</button>
+            </div>
+          </div>
+        </div>
+
+        <form class="glass config-panel reveal" id="configForm" novalidate autocomplete="off">
+          <div class="panel-head">
+            <h3>Configura tu pieza</h3>
+            <span class="mono muted" style="font-size:12px" id="weightBadge">— kg/ud</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="reference">Referencia de la pieza</label>
+            <input class="input" id="reference" name="reference" maxlength="60" placeholder="p. ej. Soporte motor v2">
+          </div>
+
+          <fieldset class="field-group">
+            <legend>Material</legend>
+            <div class="seg" id="materialOptions"><!-- JS --></div>
+          </fieldset>
+          <fieldset class="field-group">
+            <legend>Acabado / color</legend>
+            <div class="swatches" id="finishOptions"><!-- JS --></div>
+            <div class="finish-name" id="finishName"></div>
+          </fieldset>
+
+          <div class="field-group field-row">
+            <div>
+              <label class="field-label" for="thickness">Espesor</label>
+              <select class="select" id="thickness" name="thickness"><!-- JS --></select>
+            </div>
+            <div>
+              <label class="field-label" for="quantity">Cantidad</label>
+              <div class="input-suffix"><input class="input" type="number" id="quantity" name="quantity" min="1" step="1" inputmode="numeric"><span>uds</span></div>
+            </div>
+          </div>
+
+          <div class="field-group field-row">
+            <div>
+              <label class="field-label" for="width">Ancho (desarrollo)</label>
+              <div class="input-suffix"><input class="input" type="number" id="width" name="width" step="1" inputmode="decimal"><span>mm</span></div>
+            </div>
+            <div>
+              <label class="field-label" for="length">Largo</label>
+              <div class="input-suffix"><input class="input" type="number" id="length" name="length" step="1" inputmode="decimal"><span>mm</span></div>
+            </div>
+          </div>
+          <p class="error-text" id="dimError" role="alert"></p>
+          <div class="machine-badge" id="machineBadge"></div>
+
+          <fieldset class="field-group">
+            <legend>Pliegues <span class="muted" style="text-transform:none;font-family:var(--font);font-size:12px">— encadena uno sobre otro</span></legend>
+            <div id="bendsList"><!-- JS --></div>
+            <button type="button" class="btn btn-ghost btn-sm btn-block" id="addBend">+ Añadir pliegue</button>
+          </fieldset>
+
+          <fieldset class="field-group">
+            <legend>Cortes <span class="muted" style="text-transform:none;font-family:var(--font);font-size:12px">— posición libre (X, Y, ángulo)</span></legend>
+            <div id="cutsList"><!-- JS --></div>
+            <button type="button" class="btn btn-ghost btn-sm btn-block" id="addCut">+ Añadir corte</button>
+          </fieldset>
+
+
+          <div class="field-group">
+            <label class="field-label" for="notes">Notas para producción</label>
+            <textarea class="textarea" id="notes" name="notes" maxlength="1000" placeholder="Tolerancias especiales, acabado, roscas…"></textarea>
+          </div>
+
+          <!-- Precio -->
+          <div class="price-box" aria-live="polite">
+            <div class="price-main">
+              <div>
+                <small>Total piezas (sin IVA)</small>
+                <div class="price" id="priceTotal">—</div>
+              </div>
+              <div style="text-align:right">
+                <small>Precio unitario</small>
+                <div class="mono" id="priceUnit" style="font-size:18px">—</div>
+              </div>
+            </div>
+            <div class="price-meta">
+              <span>Peso total <b id="metaWeight">—</b></span>
+              <span>Área <b id="metaArea">—</b></span>
+              <span>Dto. volumen <b id="metaDiscount">—</b></span>
+            </div>
+            <details class="breakdown">
+              <summary>Ver desglose</summary>
+              <table><tbody id="breakdownBody"></tbody></table>
+            </details>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn btn-primary btn-block" id="addToCart">
+              <span class="spinner" aria-hidden="true"></span>
+              <span class="btn-label">Tramitar Pedido</span>
+            </button>
+            <p class="help-text">El plano de fabricación se genera automáticamente y se envía a producción al confirmar el pedido.</p>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© <span id="year"></span> <span id="companyLegal">[YOUR_COMPANY] S.L.</span> · Piezas de chapa a medida</span>
+      <span class="mono">Precios sin IVA · Portes gratis desde <span id="freeShip"></span></span>
+    </div>
+  </footer>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/polygon-clipping@0.15.7/dist/polygon-clipping.umd.min.js"></script>
+  <script src="js/geometry-engine.js"></script>
+  <script src="js/pricing.js"></script>
+  <script src="js/sqlpyme-api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/plan-generator.js"></script>
+  <script src="js/configurator.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script src="js/fx.js"></script>
+
+  <!-- ============ ESCENA 3D + SCROLLYTELLING ============ -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { buildPartGroup, fitCameraToObject, buildDimensionGuides, disposeDimensionGuides, DEFAULT_VIEW_DIRECTION } from './js/part-mesh-builder.js';
+
+    const canvas = document.getElementById('webgl');
+    const loader = document.getElementById('loader');
+    // js/fx.js decide cuándo se abre el loader (contador); sin él, se cierra directo
+    const hideLoader = () => (window.__fxLoaderDone ? window.__fxLoaderDone() : loader.classList.add('is-done'));
+    const FX = window.IWT_FX || { k: 1, vel: 0 };   // entrada de la pieza + velocidad de scroll
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ---------------- Estado animado por ScrollTrigger ---------------- */
+    const S = { intro: 0, cut: 0, scrap: 0, fold: 0, config: 0 };
+
+    /* ---------------- Renderer / escena / cámara ---------------- */
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+    } catch (err) {
+      console.warn('[IWT] WebGL no disponible, se continúa sin 3D.', err);
+      hideLoader();
+      throw err;
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.localClippingEnabled = true;   // barrido láser (configurador) y plano → pieza (hero)
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x07080a, 14, 32);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+    scene.environmentIntensity = 0.9;
+
+    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 3.2, 7.5);
+
+    /* Órbita manual (clic izquierdo = orbitar, rueda = zoom): SIEMPRE activa
+       mientras se está en el configurador (ver tick()); el resto de la web
+       sigue con la cámara guionizada por el scroll. La auto-rotación está
+       apagada por defecto y se controla con los botones ▶ Rotar / ⏸ Pausar,
+       que solo cambian autoRotate: el ratón funciona en ambos estados.
+       Los eventos se escuchan sobre la caja #configViewer (no sobre el canvas
+       de fondo): el ratón solo mueve la pieza dentro de su visor. */
+    const viewerBox = document.getElementById('configViewer');
+    const configSection = document.getElementById('configurator');
+    const controls = new OrbitControls(camera, viewerBox);
+    controls.enabled = false;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 1.4;
+    controls.minDistance = 2;
+    controls.maxDistance = 14;
+
+    /* Luces */
+    const key = new THREE.DirectionalLight(0xffffff, 2.2);
+    key.position.set(4, 8, 5);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.camera.left = -6; key.shadow.camera.right = 6;
+    key.shadow.camera.top = 6; key.shadow.camera.bottom = -6;
+    key.shadow.bias = -0.0005;
+    scene.add(key);
+    scene.add(key.target);
+    const rim = new THREE.DirectionalLight(0x6eacdf, 1.2);
+    rim.position.set(-6, 3, -4);
+    scene.add(rim);
+    const fill = new THREE.DirectionalLight(0x6fc8ff, 0.6);
+    fill.position.set(5, 1, -6);
+    scene.add(fill);
+
+    /* Suelo: sombra + rejilla industrial */
+    const FLOOR_Y = -1.6;
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: 0.35 }));
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = FLOOR_Y;
+    floor.receiveShadow = true;
+    scene.add(floor);
+    const grid = new THREE.GridHelper(40, 80, 0x2a2f37, 0x15181d);
+    grid.position.y = FLOOR_Y + 0.001;
+    grid.material.transparent = true;
+    grid.material.opacity = 0.55;
+    scene.add(grid);
+
+    /* ---------------- Textura metal cepillado (procedural) ---------------- */
+    function brushedTexture() {
+      const c = document.createElement('canvas');
+      c.width = c.height = 1024;
+      const g = c.getContext('2d');
+      g.fillStyle = '#b9bec5';
+      g.fillRect(0, 0, 1024, 1024);
+      for (let i = 0; i < 5200; i++) {
+        const y = Math.random() * 1024;
+        const len = 120 + Math.random() * 700;
+        const x = Math.random() * 1024 - 200;
+        const v = 150 + Math.random() * 90;
+        g.strokeStyle = `rgba(${v},${v + 4},${v + 10},${0.06 + Math.random() * 0.14})`;
+        g.lineWidth = Math.random() * 1.6 + 0.3;
+        g.beginPath(); g.moveTo(x, y); g.lineTo(x + len, y + (Math.random() - 0.5) * 2); g.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(0.35, 0.35);
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+    const brushed = brushedTexture();
+    const roughMap = brushed.clone();
+    roughMap.colorSpace = THREE.NoColorSpace;
+
+    const metalMat = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color('#9aa1a9'),
+      metalness: 1, roughness: 0.38,
+      map: brushed, roughnessMap: roughMap,
+      clearcoat: 0.15, clearcoatRoughness: 0.4,
+      envMapIntensity: 1.1,
+    });
+    const scrapMat = metalMat.clone();
+    scrapMat.transparent = true;
+    const slugMat = metalMat.clone();
+    slugMat.transparent = true;
+
+    /* Planos de recorte del barrido láser del configurador: al cambiar la pieza,
+       un plano de luz recorre la chapa; a un lado queda la geometría vieja y al
+       otro la nueva. `sweepNewPlane` (conserva x ≤ s) lo usa metalMat — la pieza
+       paramétrica —; `sweepOldPlane` (conserva x ≥ s) la copia de la pieza
+       anterior. En reposo la constante es enorme: no recorta nada. */
+    const sweepNewPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1e6);
+    const sweepOldPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), -1e6);
+    metalMat.clippingPlanes = [sweepNewPlane];
+    metalMat.clipShadows = true;
+
+    /* Plano → pieza (hero): al cargar, la chapa se ve como un plano de
+       fabricación (solo trazo azul). Al hacer scroll, un plano de luz recorre
+       la chapa y deja metal detrás. `bpPlane` (x ≤ c) recorta el relleno
+       metálico y `bpPlaneInv` (x ≥ c) el trazo, así que el metal y el dibujo
+       nunca se solapan. La maqueta usa su propia copia del material (blankMat);
+       sus propiedades en vivo se sincronizan con metalMat en tick(). */
+    const bpPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), -1e6);
+    const bpPlaneInv = new THREE.Plane(new THREE.Vector3(1, 0, 0), 1e6);
+    const blankMat = metalMat.clone();
+    blankMat.clippingPlanes = [bpPlane];
+    blankMat.clipShadows = true;
+    [scrapMat, slugMat].forEach((m) => { m.clippingPlanes = [bpPlane]; m.clipShadows = true; });
+
+    /* ---------------- Geometría de la pieza ---------------- */
+    const T = 0.045;                      // espesor visual
+    const BW = 2.4, FW = 1.2, BD = 3.0;   // ancho base, ancho ala, fondo
+    const HALF_W = BW / 2 + FW;           // 2.4
+
+    function plate(shape) {
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: T, bevelEnabled: false, curveSegments: 48 });
+      geo.rotateX(-Math.PI / 2);          // plano XZ, espesor en Y
+      geo.translate(0, -T / 2, 0);
+      geo.computeVertexNormals();
+      return geo;
+    }
+    const rectShape = (x0, y0, x1, y1) => {
+      const s = new THREE.Shape();
+      s.moveTo(x0, y0); s.lineTo(x1, y0); s.lineTo(x1, y1); s.lineTo(x0, y1); s.lineTo(x0, y0);
+      return s;
+    };
+    const circlePath = (cx, cy, r) => { const p = new THREE.Path(); p.absarc(cx, cy, r, 0, Math.PI * 2, true); return p; };
+
+    // Agujeros (coordenadas de Shape: x, y ; en mundo z = -y)
+    const HOLES = [
+      { x: 0, y: 0, r: 0.42 },                         // central
+      { x: -1.8, y: 0.9, r: 0.14 }, { x: -1.8, y: -0.9, r: 0.14 },
+      { x: 1.8, y: 0.9, r: 0.14 }, { x: 1.8, y: -0.9, r: 0.14 },
+    ];
+
+    const partRoot = new THREE.Group();   // offset lateral / rotación / flotación
+    scene.add(partRoot);
+    const blank = new THREE.Group();      // pieza útil (se escala en el configurador)
+    partRoot.add(blank);
+
+    // Panel central
+    const centerShape = rectShape(-BW / 2, -BD / 2, BW / 2, BD / 2);
+    centerShape.holes.push(circlePath(0, 0, HOLES[0].r));
+    const center = new THREE.Mesh(plate(centerShape), metalMat);
+    blank.add(center);
+
+    // Alas con pivote en la línea de plegado
+    function makeFlange(side) {
+      const pivot = new THREE.Group();
+      pivot.position.x = side * BW / 2;
+      const s = side < 0 ? rectShape(-FW, -BD / 2, 0, BD / 2) : rectShape(0, -BD / 2, FW, BD / 2);
+      HOLES.filter((h) => Math.sign(h.x) === side).forEach((h) => s.holes.push(circlePath(h.x - side * BW / 2, h.y, h.r)));
+      const mesh = new THREE.Mesh(plate(s), metalMat);
+      pivot.add(mesh);
+      blank.add(pivot);
+      return pivot;
+    }
+    const pivotL = makeFlange(-1);
+    const pivotR = makeFlange(1);
+
+    // Marco de retal (chapa bruta alrededor de la pieza)
+    const frameShape = rectShape(-3.5, -2.3, 3.5, 2.3);
+    frameShape.holes.push((() => { const p = new THREE.Path(); p.moveTo(-HALF_W, -BD / 2); p.lineTo(-HALF_W, BD / 2); p.lineTo(HALF_W, BD / 2); p.lineTo(HALF_W, -BD / 2); p.lineTo(-HALF_W, -BD / 2); return p; })());
+    const scrap = new THREE.Mesh(plate(frameShape), scrapMat);
+    partRoot.add(scrap);
+
+    // Tapones (material que cae de los taladros)
+    const slugs = HOLES.map((h) => {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(h.r - 0.004, h.r - 0.004, T, 48), slugMat);
+      m.position.set(h.x, 0, -h.y);
+      partRoot.add(m);
+      return m;
+    });
+
+    [center, pivotL.children[0], pivotR.children[0], scrap, ...slugs].forEach((m) => { m.castShadow = true; m.receiveShadow = true; });
+
+    // Trazo del plano: contorno y taladros de cada chapa (ángulo 20° para no dibujar las facetas de los círculos)
+    center.material = blankMat;
+    pivotL.children[0].material = blankMat;
+    pivotR.children[0].material = blankMat;
+    const bpLineMat = new THREE.LineBasicMaterial({ color: 0x6eacdf, transparent: true, opacity: 1, clippingPlanes: [bpPlaneInv], depthWrite: false, fog: false });
+    [center, pivotL.children[0], pivotR.children[0], scrap].forEach((m) => {
+      const edges = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 20), bpLineMat);
+      edges.renderOrder = 5;
+      m.add(edges);
+    });
+    // Plano de luz que recorre la chapa (vertical, alineado con el mundo)
+    const bpSheet = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ color: 0x6eacdf, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }),
+    );
+    bpSheet.rotation.y = Math.PI / 2;
+    bpSheet.scale.set(5.2, 2.6, 1);   // fondo de la chapa (4,6) y algo de altura: un corte de luz, no una pared
+    bpSheet.add(new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.PlaneGeometry(1, 1)),
+      new THREE.LineBasicMaterial({ color: 0x8cc4ee, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
+    ));
+    bpSheet.visible = false;
+    bpSheet.renderOrder = 15;
+    scene.add(bpSheet);
+
+    /* ---------------- Trayectoria del láser ---------------- */
+    const TOP = T / 2 + 0.002;
+    const cutGroup = new THREE.Group();
+    partRoot.add(cutGroup);
+    const cutMat = new THREE.LineBasicMaterial({ color: 0x6eacdf, transparent: true, opacity: 1, depthWrite: false });
+
+    function sampleSegment(a, b, step = 0.02) {
+      const pts = [];
+      const n = Math.max(1, Math.ceil(a.distanceTo(b) / step));
+      for (let i = 0; i <= n; i++) pts.push(a.clone().lerp(b, i / n));
+      return pts;
+    }
+    function sampleCircle(cx, cz, r, step = 0.02) {
+      const pts = [];
+      const n = Math.max(24, Math.ceil((Math.PI * 2 * r) / step));
+      for (let i = 0; i <= n; i++) {
+        const a = (i / n) * Math.PI * 2 + Math.PI;
+        pts.push(new THREE.Vector3(cx + Math.cos(a) * r, TOP, cz + Math.sin(a) * r));
+      }
+      return pts;
+    }
+    const V = (x, z) => new THREE.Vector3(x, TOP, z);
+    const cutDefs = [
+      [V(-HALF_W, BD / 2), V(HALF_W, BD / 2), V(HALF_W, -BD / 2), V(-HALF_W, -BD / 2), V(-HALF_W, BD / 2)],
+      ...HOLES.map((h) => ({ circle: h })),
+    ];
+
+    // Construye segmentos: 'travel' (haz apagado) + 'cut' (haz encendido)
+    const segments = [];
+    let lastPoint = null;
+    cutDefs.forEach((def) => {
+      let pts = [];
+      if (Array.isArray(def)) {
+        for (let i = 0; i < def.length - 1; i++) {
+          const seg = sampleSegment(def[i], def[i + 1]);
+          pts.push(...(i ? seg.slice(1) : seg));
+        }
+      } else {
+        pts = sampleCircle(def.circle.x, -def.circle.y, def.circle.r);
+      }
+      if (lastPoint) segments.push({ type: 'travel', from: lastPoint.clone(), to: pts[0].clone(), length: lastPoint.distanceTo(pts[0]) * 0.35 });
+      const cum = [0];
+      for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+      const geo = new THREE.BufferGeometry().setFromPoints(pts);
+      geo.setDrawRange(0, 0);
+      const line = new THREE.Line(geo, cutMat);
+      line.frustumCulled = false;
+      cutGroup.add(line);
+      segments.push({ type: 'cut', pts, cum, length: cum[cum.length - 1], line });
+      lastPoint = pts[pts.length - 1];
+    });
+    const totalPath = segments.reduce((s, seg) => s + seg.length, 0);
+    const cutOnlyLength = segments.filter((s) => s.type === 'cut').reduce((s, seg) => s + seg.length, 0);
+
+    // Líneas de plegado (cian, discontinuas)
+    const bendMat = new THREE.LineDashedMaterial({ color: 0x4cc9f0, dashSize: 0.08, gapSize: 0.06, transparent: true, opacity: 0 });
+    [-BW / 2, BW / 2].forEach((x) => {
+      const g = new THREE.BufferGeometry().setFromPoints([V(x, -BD / 2), V(x, BD / 2)]);
+      const l = new THREE.Line(g, bendMat);
+      l.computeLineDistances();
+      blank.add(l);
+    });
+
+    /* ---------------- Acotado técnico del plegado ----------------
+       Mientras las alas se pliegan con el scroll: arco con el ángulo en vivo,
+       referencia a 0° y a 90° (discontinua) y etiqueta con los grados, todo en
+       el azul de marca. Vive dentro de `blank`, así que se oculta con ella al
+       pasar al configurador. */
+    const ANN_COLOR = 0x6eacdf, ANN_R = 0.95, ANN_STEPS = 48;
+    const annLine = (opts) => ({ color: ANN_COLOR, transparent: true, opacity: 0, depthTest: false, fog: false, toneMapped: false, ...opts });
+    const annMats = {
+      live: new THREE.LineBasicMaterial(annLine({ color: 0x8cc4ee })),
+      ref: new THREE.LineBasicMaterial(annLine()),
+      ghost: new THREE.LineDashedMaterial(annLine({ dashSize: 0.06, gapSize: 0.05 })),
+    };
+    const arcPoints = (side, a1, steps) => Array.from({ length: steps + 1 }, (_, i) => {
+      const a = (a1 * i) / steps;
+      return new THREE.Vector3(side * Math.cos(a) * ANN_R, Math.sin(a) * ANN_R, 0);
+    });
+    function angleLabel() {
+      const c = document.createElement('canvas');
+      c.width = 220; c.height = 96;
+      const g = c.getContext('2d');
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, depthWrite: false, fog: false, toneMapped: false }));
+      sprite.scale.set(0.66, 0.288, 1);
+      sprite.renderOrder = 21;
+      return {
+        sprite,
+        set(text) {
+          g.clearRect(0, 0, 220, 96);
+          g.fillStyle = 'rgba(7, 8, 10, 0.85)';
+          g.beginPath(); g.roundRect(4, 4, 212, 88, 44); g.fill();
+          g.lineWidth = 4; g.strokeStyle = '#6eacdf'; g.stroke();
+          g.fillStyle = '#f2f4f7'; g.font = '600 50px Inter, system-ui, sans-serif';
+          g.textAlign = 'center'; g.textBaseline = 'middle';
+          g.fillText(text, 110, 52);
+          tex.needsUpdate = true;
+        },
+      };
+    }
+    const foldAnno = [-1, 1].map((side) => {
+      const pivot = side < 0 ? pivotL : pivotR;
+      const g = new THREE.Group();
+      g.position.set(side * BW / 2, 0, BD / 2 + 0.04);
+      g.visible = false;
+      blank.add(g);
+      const mk = (pts, mat) => { const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat); l.renderOrder = 20; l.frustumCulled = false; return l; };
+      const ghost = mk(arcPoints(side, Math.PI / 2, ANN_STEPS), annMats.ghost);   // objetivo: 90°
+      ghost.computeLineDistances();
+      const tick90 = mk([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, ANN_R * 1.18, 0)], annMats.ghost);
+      tick90.computeLineDistances();
+      const flat = mk([new THREE.Vector3(0, 0, 0), new THREE.Vector3(side * ANN_R * 1.18, 0, 0)], annMats.ref);   // 0°
+      const live = mk(arcPoints(side, Math.PI / 2, ANN_STEPS), annMats.live);
+      live.geometry.setDrawRange(0, 0);
+      // La línea del ala va colgada del pivote: gira sola con la chapa
+      const edge = mk([new THREE.Vector3(0, 0, 0), new THREE.Vector3(side * ANN_R * 1.18, 0, 0)], annMats.live);
+      edge.position.set(0, 0, BD / 2 + 0.04);
+      pivot.add(edge);
+      const label = angleLabel();
+      g.add(ghost, tick90, flat, live, label.sprite);
+      return { side, pivot, g, live, label, lastDeg: -1 };
+    });
+
+    /* ---------------- Cabezal láser + chispas ---------------- */
+    const head = new THREE.Group();
+    partRoot.add(head);
+    const nozzle = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.09, 0.03, 0.28, 32),
+      new THREE.MeshStandardMaterial({ color: 0x2b3038, metalness: 0.9, roughness: 0.3 })
+    );
+    nozzle.position.y = 0.75;
+    const body = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.16, 0.16, 0.9, 32),
+      new THREE.MeshStandardMaterial({ color: 0x1a1d22, metalness: 0.8, roughness: 0.35 })
+    );
+    body.position.y = 1.34;
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.165, 0.012, 12, 48), new THREE.MeshBasicMaterial({ color: 0x6eacdf }));
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 1.0;
+    const beam = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.008, 0.012, 0.62, 12, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0x8cc4ee, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })
+    );
+    beam.position.y = 0.31;
+    function glowTexture(inner = 'rgba(225,240,255,1)', outer = 'rgba(110,172,223,0)') {
+      const c = document.createElement('canvas'); c.width = c.height = 128;
+      const g = c.getContext('2d');
+      const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+      grd.addColorStop(0, inner); grd.addColorStop(0.25, 'rgba(140,196,238,0.8)'); grd.addColorStop(1, outer);
+      g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+      return new THREE.CanvasTexture(c);
+    }
+    const glowTex = glowTexture();
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    glow.scale.set(0.55, 0.55, 1);
+    glow.position.y = 0.03;
+    const hitLight = new THREE.PointLight(0x8cc4ee, 0, 2.5, 1.6);
+    hitLight.position.y = 0.12;
+    head.add(nozzle, body, ring, beam, glow, hitLight);
+    head.visible = false;
+
+    const SPARKS = reduceMotion ? 0 : 900;
+    const sparkPos = new Float32Array(SPARKS * 3);
+    const sparkVel = new Float32Array(SPARKS * 3);
+    const sparkLife = new Float32Array(SPARKS);
+    const sparkGeo = new THREE.BufferGeometry();
+    sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3));
+    const sparks = new THREE.Points(sparkGeo, new THREE.PointsMaterial({
+      size: 0.045, map: glowTex, color: 0xd6ecff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+    }));
+    sparks.frustumCulled = false;
+    partRoot.add(sparks);
+    for (let i = 0; i < SPARKS; i++) sparkPos[i * 3 + 1] = -99;
+    let sparkCursor = 0;
+
+    /* Polvo flotante: da profundidad al hero y reacciona al scroll */
+    const DUST = reduceMotion ? 0 : 320;
+    const dustPos = new Float32Array(DUST * 3);
+    for (let i = 0; i < DUST; i++) {
+      dustPos[i * 3] = (Math.random() - 0.5) * 22;
+      dustPos[i * 3 + 1] = Math.random() * 9 - 3;
+      dustPos[i * 3 + 2] = (Math.random() - 0.5) * 20 - 2;
+    }
+    const dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+    const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+      size: 0.05, map: glowTex, color: 0x8cc4ee, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false,
+    }));
+    dust.frustumCulled = false;
+    scene.add(dust);
+    function emitSparks(p, count) {
+      for (let k = 0; k < count && SPARKS; k++) {
+        const i = sparkCursor++ % SPARKS;
+        sparkPos[i * 3] = p.x; sparkPos[i * 3 + 1] = p.y; sparkPos[i * 3 + 2] = p.z;
+        const a = Math.random() * Math.PI * 2, sp = 0.6 + Math.random() * 2.2;
+        sparkVel[i * 3] = Math.cos(a) * sp * 0.6;
+        sparkVel[i * 3 + 1] = Math.random() * 1.6 - 1.4;   // mayoría hacia abajo (a través de la chapa)
+        sparkVel[i * 3 + 2] = Math.sin(a) * sp * 0.6;
+        sparkLife[i] = 0.35 + Math.random() * 0.5;
+      }
+    }
+    function updateSparks(dt) {
+      for (let i = 0; i < SPARKS; i++) {
+        if (sparkLife[i] <= 0) { sparkPos[i * 3 + 1] = -99; continue; }
+        sparkLife[i] -= dt;
+        sparkVel[i * 3 + 1] -= 6 * dt;
+        sparkPos[i * 3] += sparkVel[i * 3] * dt;
+        sparkPos[i * 3 + 1] += sparkVel[i * 3 + 1] * dt;
+        sparkPos[i * 3 + 2] += sparkVel[i * 3 + 2] * dt;
+      }
+      sparkGeo.attributes.position.needsUpdate = true;
+    }
+
+    /* Aplica el progreso de corte: líneas + posición del cabezal */
+    const headTarget = new THREE.Vector3(-HALF_W, TOP, BD / 2);
+    let beamOn = false;
+    function applyCut(p) {
+      let d = p * totalPath;
+      beamOn = false;
+      for (const seg of segments) {
+        if (seg.type === 'travel') {
+          if (d < 0) continue;
+          if (d <= seg.length) { headTarget.copy(seg.from).lerp(seg.to, seg.length ? d / seg.length : 1); d = -1; }
+          else d -= seg.length;
+          continue;
+        }
+        if (d < 0) { seg.line.geometry.setDrawRange(0, 0); continue; }
+        if (d >= seg.length) {
+          seg.line.geometry.setDrawRange(0, seg.pts.length);
+          headTarget.copy(seg.pts[seg.pts.length - 1]);
+          d -= seg.length;
+          continue;
+        }
+        let i = 1;
+        while (i < seg.cum.length && seg.cum[i] < d) i++;
+        seg.line.geometry.setDrawRange(0, i);
+        const a = seg.pts[i - 1], b = seg.pts[Math.min(i, seg.pts.length - 1)];
+        const span = seg.cum[Math.min(i, seg.cum.length - 1)] - seg.cum[i - 1] || 1;
+        headTarget.copy(a).lerp(b, (d - seg.cum[i - 1]) / span);
+        beamOn = p > 0.001 && p < 0.999;
+        d = -1;
+      }
+    }
+
+    /* ---------------- Configurador en vivo: pieza paramétrica real ----------------
+       A partir de la sección "Configurador" (c > 0.5), la maqueta de la
+       historia (`blank`) se sustituye por `paramGroup`: la malla EXACTA que
+       genera resolveGeometry(cfg) + buildPartGroup() a partir de lo que el
+       cliente ha configurado (cadena de pliegues + cortes libres), la misma
+       geometría que usa el presupuesto y el patrón plano/DXF. Comparte el
+       material `metalMat` con `blank`, así que el color/acabado que ya se
+       animaba con el scroll se hereda sin ningún cambio adicional. ------- */
+    const liveCfg = { color: new THREE.Color('#9aa1a9'), rough: 0.38, metal: 1 };
+    let paramGroup = null;
+    let paramDims = null;
+
+    function disposeGroup(group) {
+      group.traverse((o) => { if (o.isMesh) o.geometry.dispose(); });
+    }
+
+    /* ---------------- Encuadre automático del configurador ----------------
+       En la sección Configurador la pieza se encuadra SIEMPRE completa y
+       centrada con fitCameraToObject() (Box3 -> esfera envolvente -> distancia
+       según FOV, near/far incluidos), tras cada cambio de geometría y al
+       redimensionar. Como la mitad derecha de la pantalla la tapa el panel
+       del formulario, se encuadra en la ZONA LIBRE (columna izquierda, bajo
+       el título) con camera.setViewOffset(). Suelo, rejilla, sombras y
+       niebla se escalan al tamaño real de la pieza (100 mm ... 6000 mm). */
+    let orbitOn = false;
+    /** Caja del visor en pantalla (px CSS). `visible` = parte dentro del viewport. */
+    function viewerRegion() {
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      const b = viewerBox.getBoundingClientRect();
+      const top = Math.max(b.top, 0);
+      const bottom = Math.min(b.bottom, H);
+      return {
+        W, H, left: b.left, top: b.top, width: Math.max(1, b.width), height: Math.max(1, b.height),
+        visible: bottom > top && b.right > 0 && b.left < W,
+        clip: { x: Math.max(0, b.left), y: Math.max(0, H - bottom), w: Math.max(0, Math.min(b.right, W) - Math.max(0, b.left)), h: Math.max(0, bottom - top) },
+      };
+    }
+    /** Centra la proyección en la caja del visor (sigue al scroll cada frame). */
+    function applyViewerOffset(r) {
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      camera.setViewOffset(r.W, r.H, r.W / 2 - cx, r.H / 2 - cy, r.W, r.H);
+    }
+    let fittedSize = '';
+    function fitConfigView(keepDirection) {
+      if (!paramGroup) return;
+      const r = viewerRegion();
+      fittedSize = `${Math.round(r.width)}x${Math.round(r.height)}x${r.W}x${r.H}`;
+      applyViewerOffset(r);
+      const fit = fitCameraToObject(THREE, camera, controls, paramGroup, {
+        keepDirection, margin: 0.95, regionFracW: r.width / r.W, regionFracH: r.height / r.H,
+        direction: DEFAULT_VIEW_DIRECTION(THREE),
+      });
+      if (!fit) return;
+      const size = fit.box.getSize(new THREE.Vector3());
+      const span = Math.max(size.x, size.z, fit.radius) * 4;
+      floor.scale.setScalar(span / 40);
+      grid.scale.setScalar(span / 40);
+      floor.position.set(fit.center.x, fit.box.min.y - fit.radius * 0.002, fit.center.z);
+      grid.position.set(fit.center.x, fit.box.min.y - fit.radius * 0.001, fit.center.z);
+      key.position.copy(fit.center).add(new THREE.Vector3(0.8, 1.6, 1).multiplyScalar(fit.radius * 2));
+      key.target.position.copy(fit.center);
+      const sc = key.shadow.camera;
+      sc.left = -fit.radius * 1.3; sc.right = fit.radius * 1.3; sc.top = fit.radius * 1.3; sc.bottom = -fit.radius * 1.3;
+      sc.near = 0.01; sc.far = fit.radius * 8;
+      sc.updateProjectionMatrix();
+      scene.fog.near = fit.distance + fit.radius * 2;
+      scene.fog.far = fit.distance + fit.radius * 10;
+    }
+    function restoreStoryView() {
+      camera.clearViewOffset();
+      camera.near = 0.1; camera.far = 100;
+      camera.updateProjectionMatrix();
+      floor.scale.setScalar(1); grid.scale.setScalar(1);
+      floor.position.set(0, FLOOR_Y, 0); grid.position.set(0, FLOOR_Y + 0.001, 0);
+      key.position.set(4, 8, 5); key.target.position.set(0, 0, 0);
+      const sc = key.shadow.camera;
+      sc.left = -6; sc.right = 6; sc.top = 6; sc.bottom = -6; sc.near = 0.5; sc.far = 500;
+      sc.updateProjectionMatrix();
+      scene.fog.near = 14; scene.fog.far = 32;
+    }
+
+    const viewerControls = document.getElementById('viewerControls');
+    viewerControls.addEventListener('pointerdown', (e) => e.stopPropagation());
+    viewerControls.querySelectorAll('[data-rotate]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        controls.autoRotate = btn.dataset.rotate === 'on';
+        viewerControls.querySelectorAll('[data-rotate]').forEach((b) => b.classList.toggle('is-active', b === btn));
+      });
+    });
+
+    /* ---------------- Barrido láser al cambiar la pieza ----------------
+       La pieza anterior se conserva (con su propio material recortado) y un
+       plano de luz azul avanza por X: detrás aparece la geometría nueva y
+       delante sigue la vieja. Si llega otro cambio mientras barre (p. ej. al
+       teclear una medida) se cierra el barrido y se cambia sin animar. */
+    const sweep = { active: false, s: 0, x0: 0, x1: 1, tween: null, old: null, oldDims: null, oldMat: null };
+    const sweepSheet = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ color: 0x6eacdf, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }),
+    );
+    sweepSheet.rotation.y = Math.PI / 2;     // mira hacia +X: se escala (z, y)
+    sweepSheet.add(new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.PlaneGeometry(1, 1)),
+      new THREE.LineBasicMaterial({ color: 0x8cc4ee, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
+    ));
+    sweepSheet.visible = false;
+    sweepSheet.renderOrder = 15;
+    partRoot.add(sweepSheet);
+
+    function applySweep() {
+      sweepNewPlane.constant = sweep.s;
+      sweepOldPlane.constant = -sweep.s;
+      const p = THREE.MathUtils.clamp((sweep.s - sweep.x0) / (sweep.x1 - sweep.x0 || 1), 0, 1);
+      const fade = Math.sin(Math.PI * p);
+      sweepSheet.position.x = sweep.s;
+      sweepSheet.material.opacity = 0.3 * fade;
+      sweepSheet.children[0].material.opacity = 0.95 * Math.min(1, fade * 2.5);
+    }
+    function endSweep() {
+      if (!sweep.active) return;
+      sweep.active = false;
+      if (sweep.tween) { sweep.tween.kill(); sweep.tween = null; }
+      if (sweep.old) {
+        partRoot.remove(sweep.old);
+        disposeDimensionGuides(sweep.oldDims);
+        disposeGroup(sweep.old);
+        sweep.old = null; sweep.oldDims = null;
+      }
+      if (sweep.oldMat) { sweep.oldMat.dispose(); sweep.oldMat = null; }
+      sweepNewPlane.constant = 1e6;
+      sweepOldPlane.constant = -1e6;
+      sweepSheet.visible = false;
+      if (paramDims) paramDims.visible = true;
+    }
+    function startSweep(prev, prevDims) {
+      sweep.old = prev; sweep.oldDims = prevDims;
+      sweep.oldMat = metalMat.clone();
+      sweep.oldMat.clippingPlanes = [sweepOldPlane];
+      sweep.oldMat.clipShadows = true;
+      prev.traverse((o) => { if (o.isMesh) o.material = sweep.oldMat; });
+      if (prevDims) prevDims.visible = false;
+      if (paramDims) paramDims.visible = false;     // las cotas aparecen al terminar
+      partRoot.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(prev).union(new THREE.Box3().setFromObject(paramGroup));
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const pad = size.x * 0.03 + 1e-4;
+      sweep.x0 = box.min.x - pad;
+      sweep.x1 = box.max.x + pad;
+      sweep.s = sweep.x0;
+      sweepSheet.scale.set(size.z * 1.3 + 1e-3, size.y * 1.6 + 1e-3, 1);
+      sweepSheet.position.set(sweep.x0, center.y, center.z);
+      sweepSheet.visible = true;
+      sweep.active = true;
+      applySweep();
+      sweep.tween = gsap.to(sweep, { s: sweep.x1, duration: 1.15, ease: 'power2.inOut', onUpdate: applySweep, onComplete: endSweep });
+    }
+
+    function rebuildParam(cfg) {
+      if (!cfg) return;
+      if (sweep.active) endSweep();
+      const canSweep = !reduceMotion && orbitOn && window.gsap && paramGroup && paramGroup.visible;
+      let prev = null, prevDims = null;
+      if (paramGroup) {
+        if (canSweep) { prev = paramGroup; prevDims = paramDims; }
+        else { partRoot.remove(paramGroup); disposeDimensionGuides(paramDims); disposeGroup(paramGroup); }
+      }
+      const built = buildPartGroup(THREE, cfg, metalMat);
+      paramGroup = built.group;
+      paramGroup.visible = false;
+      const box = new THREE.Box3().setFromObject(paramGroup);
+      const center = box.getCenter(new THREE.Vector3());
+      // Cotas Ancho / Largo en el suelo junto a la pieza (solo visual)
+      paramDims = buildDimensionGuides(THREE, sanitizePartConfig(cfg), paramGroup);
+      paramGroup.add(paramDims);
+      paramGroup.position.sub(center);
+      paramGroup.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+      partRoot.add(paramGroup);
+      if (orbitOn) fitConfigView(true);
+      if (prev) startSweep(prev, prevDims);
+
+      const look = resolveMaterialLook(cfg);
+      liveCfg.color.set(look.color);
+      liveCfg.rough = look.roughness;
+      liveCfg.metal = look.metalness;
+    }
+    window.addEventListener('iwt:config-change', (e) => rebuildParam(e.detail));
+    rebuildParam(window.IWT_LAST_CONFIG || defaultPartConfig());
+
+    /* ---------------- GSAP ScrollTrigger ---------------- */
+    gsap.registerPlugin(ScrollTrigger);
+    const $ = (id) => document.getElementById(id);
+
+    // scrub corto: el suavizado ya lo da Lenis (js/fx.js) y la cámara amortiguada de tick()
+    gsap.to(S, { intro: 1, ease: 'none', scrollTrigger: { trigger: '#laser', start: 'top bottom', end: 'top top', scrub: 0.4 } });
+    gsap.to(S, {
+      cut: 1, ease: 'none',
+      scrollTrigger: {
+        trigger: '#laser', start: 'top top', end: 'bottom bottom', scrub: 0.25,
+        onUpdate: (st) => {
+          const p = st.progress;
+          $('cutPct').textContent = `${Math.round(p * 100)}%`;
+          $('cutBar').style.width = `${p * 100}%`;
+        },
+      },
+    });
+    gsap.to(S, { scrap: 1, ease: 'none', scrollTrigger: { trigger: '#fold', start: 'top bottom', end: 'top 15%', scrub: 0.4 } });
+    gsap.to(S, {
+      fold: 1, ease: 'none',
+      scrollTrigger: {
+        trigger: '#fold', start: 'top top', end: 'bottom bottom', scrub: 0.4,
+        onUpdate: (st) => {
+          // mismo suavizado (smoothstep) que el plegado real de la chapa, para que contador y etiqueta 3D coincidan
+          const p = st.progress;
+          $('foldAngle').textContent = `${Math.round(p * p * (3 - 2 * p) * 90)}°`;
+          $('foldBar').style.width = `${st.progress * 100}%`;
+        },
+      },
+    });
+    gsap.to(S, { config: 1, ease: 'none', scrollTrigger: { trigger: '#configurator', start: 'top bottom', end: 'top top', scrub: 0.4 } });
+
+    /* ---------------- Keyframes de cámara / composición ---------------- */
+    const isWide = () => window.innerWidth / window.innerHeight > 1.05 && window.innerWidth > 900;
+    function keyframes() {
+      const w = isWide();
+      const aspect = window.innerWidth / window.innerHeight;
+      const far = w ? 1 : (aspect < 0.8 ? 2.15 : 1.45);   // móvil vertical: más lejos
+      const ly = w ? 0 : -2.0;                              // móvil: pieza en la mitad superior
+      const K = {
+        hero:   { cam: [0, 4.6 * far, 10.8 * far], look: [0, 0.2, 0], x: w ? 2.6 : 0, y: -0.35 },
+        laser:  { cam: [0, 8.6 * far, 6.4 * far], look: [0, 0.25, 0.3], x: w ? 2.1 : 0, y: 0 },
+        fold:   { cam: [0.6, 4.4 * far, 9.6 * far], look: [0, 0.5, 0], x: w ? -1.9 : 0, y: 0.1 },
+        config: { cam: [0, 3.6 * far, 10.6 * far], look: [0, 1.1, 0], x: w ? -3.1 : 0, y: 0.15 },
+      };
+      Object.values(K).forEach((k) => { k.look[1] += ly; k.cam[1] += ly; });
+      return K;
+    }
+    let KF = keyframes();
+
+    const mouse = new THREE.Vector2();
+    window.addEventListener('pointermove', (e) => {
+      mouse.set(e.clientX / window.innerWidth - 0.5, e.clientY / window.innerHeight - 0.5);
+    }, { passive: true });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      KF = keyframes();
+      if (orbitOn) fitConfigView(true);
+    });
+
+    const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3();
+    const camPos = new THREE.Vector3(), camLook = new THREE.Vector3();
+    const smooth = (t) => t * t * (3 - 2 * t);
+    const lerpArr = (out, a, b, t) => out.set(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t);
+    const defaultColor = new THREE.Color('#9aa1a9');
+    const tmpColor = new THREE.Color();
+
+    function composeTargets() {
+      const i = smooth(S.intro), s = smooth(S.scrap), c = smooth(S.config);
+      lerpArr(tmpA, KF.hero.cam, KF.laser.cam, i);
+      lerpArr(tmpB, KF.laser.cam, KF.fold.cam, s); tmpA.lerp(tmpB, s);
+      lerpArr(tmpB, KF.fold.cam, KF.config.cam, c); tmpA.lerp(tmpB, c);
+      const cam = tmpA.clone();
+      lerpArr(tmpA, KF.hero.look, KF.laser.look, i);
+      lerpArr(tmpB, KF.laser.look, KF.fold.look, s); tmpA.lerp(tmpB, s);
+      lerpArr(tmpB, KF.fold.look, KF.config.look, c); tmpA.lerp(tmpB, c);
+      const look = tmpA.clone();
+      let x = KF.hero.x + (KF.laser.x - KF.hero.x) * i;
+      x += (KF.fold.x - x) * s;
+      x += (KF.config.x - x) * c;
+      let y = KF.hero.y + (KF.laser.y - KF.hero.y) * i;
+      y += (KF.fold.y - y) * s;
+      y += (KF.config.y - y) * c;
+      return { cam, look, x, y };
+    }
+
+    /* ---------------- Bucle de render ---------------- */
+    const clock = new THREE.Clock();
+    let lastCut = 0, first = true;
+    const BASE_FOV = camera.fov;
+    let fovKick = 0, spinKick = 0;
+
+    function tick() {
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const t = clock.elapsedTime;
+      const tg = composeTargets();
+      const heroW = 1 - smooth(S.intro);
+      const c = smooth(S.config);
+
+      // Cámara: guionizada por el scroll salvo dentro del configurador, donde
+      // el usuario orbita a mano (sin auto-rotación). Se cede el control una
+      // sola vez al entrar/salir para no pelear con OrbitControls cada frame.
+      const wantOrbit = c > 0.5;
+      if (wantOrbit !== orbitOn) {
+        orbitOn = wantOrbit;
+        controls.enabled = orbitOn;
+        if (orbitOn) {
+          // Pose fija de la pieza (sin animación) y encuadre automático
+          partRoot.position.set(0, 0, 0);
+          partRoot.rotation.set(0, 0, 0);
+          partRoot.scale.setScalar(1);
+          fovKick = 0;
+          camera.fov = BASE_FOV;
+          camera.updateProjectionMatrix();
+          partRoot.updateMatrixWorld(true);
+          fitConfigView(false);
+        } else {
+          restoreStoryView();
+        }
+      }
+      if (orbitOn) {
+        controls.update();
+      } else {
+        // Cámara suavizada + parallax de ratón
+        tg.cam.x += mouse.x * 0.6; tg.cam.y += -mouse.y * 0.35;
+        if (first) { camPos.copy(tg.cam); camLook.copy(tg.look); first = false; }
+        camPos.lerp(tg.cam, 1 - Math.pow(0.001, dt));
+        camLook.lerp(tg.look, 1 - Math.pow(0.001, dt));
+        camera.position.copy(camPos);
+        // Entrada: la cámara llega desde lejos (FX.k 0 → 1) y se aleja un poco más con la velocidad del scroll
+        camera.position.sub(camLook).multiplyScalar(1 + 0.75 * (1 - FX.k)).add(camLook);
+        camera.lookAt(camLook);
+        // Zoom de velocidad: el FOV se abre al hacer scroll rápido
+        fovKick = THREE.MathUtils.damp(fovKick, Math.min(9, Math.abs(FX.vel) * 0.1), 4, dt);
+        const fov = BASE_FOV + fovKick;
+        if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+      }
+
+      // Composición de la pieza (estática una vez en el configurador: el
+      // usuario orbita con el ratón en vez de verla girar sola)
+      if (!orbitOn) {
+        partRoot.position.x = THREE.MathUtils.damp(partRoot.position.x, tg.x, 5, dt);
+        partRoot.position.y = tg.y + Math.sin(t * 1.1) * 0.06 * heroW;
+        const foldSpin = S.fold * 0.75 - 0.2 * S.fold;
+        // El scroll rápido da un latigazo a la pieza (kick) y la entrada la hace girar y crecer (FX.k)
+        spinKick = THREE.MathUtils.damp(spinKick, THREE.MathUtils.clamp(FX.vel * 0.02, -0.5, 0.5), 3, dt);
+        partRoot.rotation.y = heroW * (Math.sin(t * 0.35) * 0.25 - 0.35) + (1 - heroW) * (1 - c) * foldSpin + c * 0.55
+          + spinKick + (1 - FX.k) * 2.4;
+        partRoot.rotation.x = heroW * 0.18 + S.fold * (1 - c) * 0.12;
+        partRoot.rotation.z = heroW * -0.06;
+        partRoot.scale.setScalar(0.55 + 0.45 * FX.k);
+      }
+
+      // Polvo: deriva lento, se arremolina con el scroll y se apaga en el configurador
+      dust.visible = !orbitOn;
+      dust.rotation.y = t * 0.015 + spinKick * 0.6;
+      dust.position.y = Math.sin(t * 0.2) * 0.3;
+
+      // Corte láser
+      applyCut(S.cut);
+      const laserVis = smooth(Math.min(1, S.intro * 1.4)) * (1 - smooth(Math.min(1, S.scrap * 2.2)));
+      head.visible = laserVis > 0.01;
+      head.position.lerp(tmpB.set(headTarget.x, 0, headTarget.z), first ? 1 : 1 - Math.pow(1e-6, dt));
+      head.position.y = (1 - laserVis) * 2.5;
+      const cutting = beamOn && Math.abs(S.cut - lastCut) > 1e-5;
+      lastCut = S.cut;
+      const beamI = (beamOn ? 1 : 0.0) * laserVis;
+      beam.material.opacity = beamI * (0.75 + Math.random() * 0.25);
+      glow.material.opacity = beamI;
+      glow.scale.setScalar(0.45 + (cutting ? Math.random() * 0.25 : 0.05));
+      hitLight.intensity = beamI * (cutting ? 3 + Math.random() * 2 : 1.2);
+      if (cutting) {
+        emitSparks(tmpA.set(head.position.x, TOP, head.position.z), 10);
+      }
+      updateSparks(dt);
+
+      // Líneas de corte: brillan mientras se corta y se desvanecen al retirar retal
+      cutMat.opacity = 1 - smooth(Math.min(1, S.scrap * 1.6));
+      cutGroup.visible = cutMat.opacity > 0.01;
+
+      // Retal y tapones caen
+      const sc = smooth(S.scrap);
+      scrap.position.y = -sc * 2.2;
+      scrap.position.z = sc * 0.6;
+      scrapMat.opacity = 1 - sc;
+      scrap.visible = sc < 0.99;
+      slugs.forEach((m, k) => {
+        const f = smooth(Math.min(1, S.scrap * (1.6 + k * 0.15)));
+        m.position.y = -f * 2.6;
+        m.rotation.x = f * (2 + k);
+        m.visible = f < 0.99;
+      });
+      slugMat.opacity = 1 - smooth(Math.min(1, S.scrap * 1.4));
+
+      // Plano → pieza: el hero es el plano (solo trazo); el primer tramo de scroll lo rellena de metal
+      const bp = orbitOn ? 1 : smooth(THREE.MathUtils.clamp(S.intro / 0.75, 0, 1));
+      if (bp >= 0.999) {
+        bpPlane.constant = 1e6; bpPlaneInv.constant = -1e6;
+        bpLineMat.visible = false; bpSheet.visible = false;
+      } else {
+        const half = 4.4 * partRoot.scale.x;
+        const cx = partRoot.position.x - half + bp * 2 * half;
+        bpPlane.constant = cx; bpPlaneInv.constant = -cx;
+        bpLineMat.visible = true;
+        bpSheet.visible = bp > 0.003;
+        bpSheet.position.set(cx, partRoot.position.y, partRoot.position.z);
+        const fade = Math.sin(Math.PI * bp);
+        bpSheet.material.opacity = 0.16 * fade;
+        bpSheet.children[0].material.opacity = 0.9 * Math.min(1, fade * 2.5);
+      }
+
+      // Líneas de plegado
+      bendMat.opacity = Math.min(1, S.scrap * 1.5) * (1 - smooth(Math.min(1, S.fold * 1.6))) * 0.9;
+
+      // Plegado (solo la maqueta de la historia; su ángulo lo marca el scroll)
+      const foldA = smooth(S.fold) * Math.PI / 2;
+      pivotL.rotation.z = THREE.MathUtils.damp(pivotL.rotation.z, -foldA, 8, dt);
+      pivotR.rotation.z = THREE.MathUtils.damp(pivotR.rotation.z, foldA, 8, dt);
+      blank.position.y = foldA > 0.01 ? -Math.sin(foldA) * FW * 0.45 : 0;
+
+      // Acotado del plegado: aparece al empezar a plegar; el ángulo sale de la chapa real (pivote amortiguado)
+      const annVis = smooth(Math.min(1, S.fold * 5));
+      annMats.live.opacity = annVis;
+      annMats.ref.opacity = 0.75 * annVis;
+      annMats.ghost.opacity = 0.55 * annVis;
+      foldAnno.forEach((a) => {
+        a.g.visible = annVis > 0.01;
+        if (!a.g.visible) return;
+        const ang = Math.max(0, a.side * a.pivot.rotation.z);
+        a.live.geometry.setDrawRange(0, Math.round((ang / (Math.PI / 2)) * ANN_STEPS) + 1);
+        const deg = Math.round((ang * 180) / Math.PI);
+        if (deg !== a.lastDeg) { a.label.set(`${deg}°`); a.lastDeg = deg; }
+        const mid = Math.max(ang / 2, 0.22);
+        a.label.sprite.position.set(a.side * Math.cos(mid) * ANN_R * 1.62, Math.sin(mid) * ANN_R * 1.62, 0);
+        a.label.sprite.material.opacity = annVis;
+        a.label.sprite.visible = a.side < 0;   // una sola etiqueta: la otra pisaría la tarjeta de texto
+      });
+
+      // Material en vivo (compartido por la maqueta y la pieza paramétrica)
+      tmpColor.copy(defaultColor).lerp(liveCfg.color, c);
+      metalMat.color.lerp(tmpColor, 1 - Math.pow(0.002, dt));
+      metalMat.roughness = THREE.MathUtils.damp(metalMat.roughness, 0.38 + (liveCfg.rough - 0.38) * c, 6, dt);
+      metalMat.metalness = THREE.MathUtils.damp(metalMat.metalness, 1 + (liveCfg.metal - 1) * c, 6, dt);
+      blankMat.color.copy(metalMat.color);
+      blankMat.roughness = metalMat.roughness;
+      blankMat.metalness = metalMat.metalness;
+
+      // Cruce maqueta -> pieza real configurada por el cliente
+      const showParam = c > 0.5;
+      blank.visible = !showParam;
+      if (paramGroup) paramGroup.visible = showParam;
+      if (sweep.old) sweep.old.visible = showParam;
+      if (!showParam && sweep.active) endSweep();
+      if (showParam) {
+        head.visible = false; cutGroup.visible = false; scrap.visible = false;
+        slugs.forEach((m) => { m.visible = false; });
+      }
+
+      if (orbitOn) {
+        // La pieza vive SOLO dentro de #configViewer: se sigue su posición al
+        // hacer scroll y el render se recorta (scissor) a su caja, así nunca
+        // pisa el título, las etiquetas ni el formulario.
+        const r = viewerRegion();
+        renderer.setScissorTest(false);
+        renderer.clear();
+        if (r.visible && r.clip.w > 0 && r.clip.h > 0) {
+          if (`${Math.round(r.width)}x${Math.round(r.height)}x${r.W}x${r.H}` !== fittedSize) fitConfigView(true);
+          else applyViewerOffset(r);
+          renderer.setScissorTest(true);
+          renderer.setScissor(r.clip.x, r.clip.y, r.clip.w, r.clip.h);
+          renderer.render(scene, camera);
+          renderer.setScissorTest(false);
+        }
+      } else {
+        // Mientras el configurador entra en pantalla, la maqueta de la
+        // historia solo se dibuja POR ENCIMA de la sección (efecto telón):
+        // nunca pisa el título "Tu pieza. Tu precio. Ahora." ni sus etiquetas.
+        const secTop = configSection.getBoundingClientRect().top;
+        const H = window.innerHeight;
+        if (secTop >= H) {
+          renderer.render(scene, camera);
+        } else {
+          renderer.setScissorTest(false);
+          renderer.clear();
+          if (secTop > 0) {
+            renderer.setScissorTest(true);
+            renderer.setScissor(0, H - secTop, window.innerWidth, secTop);
+            renderer.render(scene, camera);
+            renderer.setScissorTest(false);
+          }
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    renderer.compile(scene, camera);
+    requestAnimationFrame(tick);
+    setTimeout(hideLoader, 350);
+    ScrollTrigger.refresh();
+  </script>
+</body>
+</html>

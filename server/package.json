@@ -1,0 +1,24 @@
+{
+  "name": "industrial-web-template-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reference API: staff login with lockout, parameterized ERP queries, order intake with sanitized DXF attachments",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "hash-password": "node hash-password.js",
+    "test": "node --test test/"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "multer": "^2.0.2",
+    "nodemailer": "^10.1.0"
+  },
+  "optionalDependencies": {
+    "mssql": "^11.0.1"
+  }
+}
