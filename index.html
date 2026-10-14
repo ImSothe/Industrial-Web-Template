@@ -132,9 +132,8 @@
           <!-- Visor 3D del configurador: caja EN EL FLUJO del documento, siempre
                debajo de los textos. La pieza se encuadra y se recorta a esta
                caja (ver fitConfigView / tick en el módulo de abajo). -->
-          <div class="config-viewer" id="configViewer" data-cursor="Arrastra" role="img" aria-label="Vista 3D interactiva de tu pieza">
-            <span class="config-viewer-hint mono">Arrastra para girar · clic y rueda para zoom</span>
-            <span class="config-viewer-toast" id="viewerToast" role="status" aria-live="polite"></span>
+          <div class="config-viewer" id="configViewer" data-lenis-prevent-wheel data-cursor="Arrastra" role="img" aria-label="Vista 3D interactiva de tu pieza">
+            <span class="config-viewer-hint mono">Arrastra para girar · rueda para zoom</span>
             <div class="viewer-controls" id="viewerControls" role="group" aria-label="Controles de la vista 3D">
               <button type="button" class="viewer-rotate-btn viewer-zoom-btn" data-zoom="in" title="Acercar" aria-label="Acercar">+</button>
               <button type="button" class="viewer-rotate-btn viewer-zoom-btn" data-zoom="out" title="Alejar" aria-label="Alejar">−</button>
@@ -267,7 +266,7 @@
   <script type="module">
     import * as THREE from 'three';
     import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
     import { buildPartGroup, fitCameraToObject, buildDimensionGuides, disposeDimensionGuides, DEFAULT_VIEW_DIRECTION } from './js/part-mesh-builder.js';
 
     const canvas = document.getElementById('webgl');
@@ -317,54 +316,38 @@
        de fondo): el ratón solo mueve la pieza dentro de su visor. */
     const viewerBox = document.getElementById('configViewer');
     const configSection = document.getElementById('configurator');
-    const controls = new OrbitControls(camera, viewerBox);
+    // Giro LIBRE (TrackballControls): sin topes al llegar arriba/abajo, se
+    // puede dar la vuelta completa a la pieza en cualquier dirección.
+    // Arrastrar = girar · rueda = zoom · clic derecho = desplazar.
+    const controls = new TrackballControls(camera, viewerBox);
     controls.enabled = false;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
-    controls.autoRotate = false;
-    controls.autoRotateSpeed = 1.4;
+    controls.rotateSpeed = 3.2;
+    controls.zoomSpeed = 1.1;
+    controls.panSpeed = 0.6;
+    controls.dynamicDampingFactor = 0.12;
+    controls.keys = [];                  // sin atajos A/S/D: no interfieren al escribir en el formulario
     controls.minDistance = 2;
     controls.maxDistance = 14;
+    let autoRotate = false;              // botón ▶ Rotar (Trackball no trae auto-giro)
+    const AUTO_ROTATE_RAD_S = 0.45;
+    const _autoQ = new THREE.Quaternion();
+    const _yAxis = new THREE.Vector3(0, 1, 0);
+    function stepAutoRotate(dt) {
+      _autoQ.setFromAxisAngle(_yAxis, AUTO_ROTATE_RAD_S * dt);
+      camera.position.sub(controls.target).applyQuaternion(_autoQ).add(controls.target);
+      camera.up.applyQuaternion(_autoQ);
+    }
 
-    /* Rueda y dedo son de la PÁGINA hasta que el usuario "activa" el visor:
-       - Clic dentro del visor -> la rueda hace zoom (borde azul) hasta que el
-         ratón sale de él. Sin clic, la rueda baja la página y aparece un aviso.
-       - Ctrl/⌘ + rueda o pellizco en el trackpad: zoom siempre.
-       - Botones + / − del visor.
-       - Táctil: deslizar en vertical baja la página, en horizontal gira la
-         pieza, pellizcar hace zoom. */
-    controls.enableZoom = false;
-    const viewerToast = document.getElementById('viewerToast');
-    let zoomArmed = false;
-    let toastTimer = 0;
-    function setZoomArmed(on) {
-      zoomArmed = on;
-      viewerBox.classList.toggle('is-armed', on);
-      // Con Lenis (scroll suave), excluir el visor mientras la rueda es zoom
-      if (on) viewerBox.setAttribute('data-lenis-prevent', ''); else viewerBox.removeAttribute('data-lenis-prevent');
-    }
-    function showViewerToast(text) {
-      viewerToast.textContent = text;
-      viewerToast.classList.add('is-on');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => viewerToast.classList.remove('is-on'), 1400);
-    }
-    viewerBox.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'touch') { controls.enableZoom = true; return; }   // pellizco táctil
-      if (!e.target.closest('#viewerControls')) setZoomArmed(true);
-    }, { capture: true });
-    viewerBox.addEventListener('pointerleave', () => setZoomArmed(false));
-    viewerBox.addEventListener('wheel', (e) => {
-      controls.enableZoom = zoomArmed || e.ctrlKey || e.metaKey;   // se decide ANTES de que OrbitControls lea el evento
-      if (!controls.enableZoom && controls.enabled) showViewerToast('Haz clic en la pieza para hacer zoom con la rueda');
-    }, { capture: true, passive: true });
+    /* Zoom: rueda del ratón directamente sobre el visor (fuera de él, la
+       rueda baja la página), pellizco en trackpad/táctil y botones + / −.
+       En táctil, deslizar en vertical baja la página y en horizontal gira. */
     function zoomBy(factor) {
       const off = camera.position.clone().sub(controls.target);
       const d = THREE.MathUtils.clamp(off.length() * factor, controls.minDistance, controls.maxDistance);
       const to = controls.target.clone().add(off.setLength(d));
       gsap.to(camera.position, { x: to.x, y: to.y, z: to.z, duration: 0.35, ease: 'power2.out', overwrite: true, onUpdate: () => controls.update() });
     }
-    viewerBox.style.touchAction = 'pan-y';                        // OrbitControls pone 'none' (atrapaba el scroll táctil)
+    viewerBox.style.touchAction = 'pan-y';                        // TrackballControls pone 'none' (atraparía el scroll táctil)
 
     /* Luces */
     const key = new THREE.DirectionalLight(0xffffff, 2.2);
@@ -867,6 +850,7 @@
       scene.fog.far = fit.distance + fit.radius * 10;
     }
     function restoreStoryView() {
+      grid.visible = floor.visible = true;
       camera.clearViewOffset();
       camera.near = 0.1; camera.far = 100;
       camera.updateProjectionMatrix();
@@ -886,7 +870,7 @@
     });
     viewerControls.querySelectorAll('[data-rotate]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        controls.autoRotate = btn.dataset.rotate === 'on';
+        autoRotate = btn.dataset.rotate === 'on';
         viewerControls.querySelectorAll('[data-rotate]').forEach((b) => b.classList.toggle('is-active', b === btn));
       });
     });
@@ -1096,7 +1080,7 @@
 
       // Cámara: guionizada por el scroll salvo dentro del configurador, donde
       // el usuario orbita a mano (sin auto-rotación). Se cede el control una
-      // sola vez al entrar/salir para no pelear con OrbitControls cada frame.
+      // sola vez al entrar/salir para no pelear con los controles cada frame.
       // Se entra al visor del configurador cuando la sección ya cubre casi toda
       // la pantalla (la escena de la historia ha subido fuera de vista) y se
       // sale un poco más abajo: el margen evita parpadeos en el límite.
@@ -1120,7 +1104,12 @@
         }
       }
       if (orbitOn) {
+        controls.handleResize();          // el visor se mueve con el scroll: recalcula su caja
+        if (autoRotate) stepAutoRotate(dt);
         controls.update();
+        // Con giro libre se puede mirar desde debajo: ahí el suelo y la
+        // rejilla se ocultan para no taparla.
+        grid.visible = floor.visible = camera.position.y > grid.position.y;
       } else {
         // Cámara suavizada + parallax de ratón
         tg.cam.x += mouse.x * 0.6; tg.cam.y += -mouse.y * 0.35;

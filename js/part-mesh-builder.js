@@ -287,7 +287,7 @@ export function disposeDimensionGuides(group) {
  * Encuadra la cámara para que `object` se vea COMPLETO y centrado, mida
  * 100 mm o 6000 mm. Usa la esfera envolvente del Box3 y el FOV real
  * (el más restrictivo de vertical/horizontal), y ajusta near/far y los
- * límites de zoom de OrbitControls a ese tamaño.
+ * límites de zoom de los controles de cámara a ese tamaño.
  *   opts.regionFracW / regionFracH: fracción del viewport disponible (si
  *     parte de la pantalla está tapada por un panel — ver setViewOffset).
  *   opts.keepDirection: conserva el ángulo de vista actual del usuario y
@@ -310,7 +310,10 @@ export function fitCameraToObject(THREE, camera, controls, object, opts = {}) {
 
   const target = controls ? controls.target : new THREE.Vector3();
   let dir = new THREE.Vector3().subVectors(camera.position, target);
-  if (!opts.keepDirection || dir.lengthSq() < 1e-10) dir = (opts.direction || DEFAULT_VIEW_DIRECTION(THREE)).clone();
+  if (!opts.keepDirection || dir.lengthSq() < 1e-10) {
+    dir = (opts.direction || DEFAULT_VIEW_DIRECTION(THREE)).clone();
+    camera.up.set(0, 1, 0);           // con giro libre la cámara puede haber quedado ladeada
+  }
   dir.normalize();
 
   camera.position.copy(center).addScaledVector(dir, distance);

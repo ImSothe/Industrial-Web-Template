@@ -2,7 +2,7 @@
    [YOUR_COMPANY] · Visor 3D estático del Panel de Taller (empleado.html)
    --------------------------------------------------------------------------
    A diferencia de index.html (scrollytelling), aquí no hay scroll: la pieza
-   refleja la configuración actual y se controla con el ratón (OrbitControls,
+   refleja la configuración actual y se controla con el ratón (TrackballControls,
    sin auto-rotación por defecto — un giro constante marea y no deja ver el
    detalle). Usa el mismo motor de malla que index.html (js/part-mesh-
    builder.js -> buildPartGroup), así que representa EXACTAMENTE la misma
@@ -20,7 +20,7 @@
    ========================================================================== */
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { buildPartGroup, fitCameraToObject, PART_SCALE, buildDimensionGuides, disposeDimensionGuides } from './part-mesh-builder.js';
 import { partToSTL, partToGLB } from './part-export.js';
@@ -50,12 +50,20 @@ function boot() {
 
   const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
 
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-  controls.autoRotate = false;          // pieza estática por defecto: gira solo si el usuario arrastra
-  controls.autoRotateSpeed = 1.4;
+  // Giro LIBRE (TrackballControls): sin topes al llegar arriba/abajo, para
+  // revisar la pieza desde cualquier lado (también por debajo).
+  // Arrastrar = girar · rueda = zoom · clic derecho = desplazar.
+  const controls = new TrackballControls(camera, renderer.domElement);
+  controls.rotateSpeed = 3.2;
+  controls.zoomSpeed = 1.1;
+  controls.panSpeed = 0.6;
+  controls.dynamicDampingFactor = 0.12;
+  controls.keys = [];                   // sin atajos A/S/D: no interfieren al escribir
   controls.minDistance = 0.05;
+  let autoRotate = false;               // pieza estática por defecto (botón ▶ Rotar)
+  const clock = new THREE.Clock();
+  const autoQ = new THREE.Quaternion();
+  const yAxis = new THREE.Vector3(0, 1, 0);
 
   const key = new THREE.DirectionalLight(0xffffff, 2);
   key.position.set(4, 6, 4);
@@ -248,7 +256,16 @@ function boot() {
   }
 
   function tick() {
+    const dt = Math.min(clock.getDelta(), 0.05);
+    controls.handleResize();             // el visor puede moverse con el scroll de la página
+    if (autoRotate) {
+      autoQ.setFromAxisAngle(yAxis, 0.45 * dt);
+      camera.position.sub(controls.target).applyQuaternion(autoQ).add(controls.target);
+      camera.up.applyQuaternion(autoQ);
+    }
     controls.update();
+    // Con giro libre se puede mirar desde debajo: ahí el suelo y la rejilla se ocultan
+    grid.visible = floor.visible = camera.position.y > grid.position.y;
     renderer.render(scene, camera);
     requestAnimationFrame(tick);
   }
@@ -259,10 +276,10 @@ function boot() {
   async function exportSTL() { return partToSTL(THREE, lastCfg); }
   async function exportGLB() { return partToGLB(THREE, lastCfg); }
   function setAutoRotate(on) {
-    controls.autoRotate = !!on;          // OrbitControls sigue enabled: el ratón funciona en ambos estados
-    return controls.autoRotate;
+    autoRotate = !!on;                   // el ratón sigue funcionando en ambos estados
+    return autoRotate;
   }
-  const toggleAutoRotate = () => setAutoRotate(!controls.autoRotate);
+  const toggleAutoRotate = () => setAutoRotate(!autoRotate);
 
   window.EmployeeViewer = {
     update, exportSTL, exportGLB, resize, setAutoRotate, toggleAutoRotate,
