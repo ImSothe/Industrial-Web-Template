@@ -132,8 +132,8 @@
           <!-- Visor 3D del configurador: caja EN EL FLUJO del documento, siempre
                debajo de los textos. La pieza se encuadra y se recorta a esta
                caja (ver fitConfigView / tick en el módulo de abajo). -->
-          <div class="config-viewer" id="configViewer" data-lenis-prevent data-cursor="Arrastra" role="img" aria-label="Vista 3D interactiva de tu pieza">
-            <span class="config-viewer-hint mono">Arrastra para girar · rueda para zoom</span>
+          <div class="config-viewer" id="configViewer" data-cursor="Arrastra" role="img" aria-label="Vista 3D interactiva de tu pieza">
+            <span class="config-viewer-hint mono">Arrastra para girar · Ctrl + rueda para zoom</span>
             <div class="viewer-controls" id="viewerControls" role="group" aria-label="Rotación de la vista 3D">
               <button type="button" class="viewer-rotate-btn" data-rotate="on" title="Girar la pieza automáticamente">▶ Rotar</button>
               <button type="button" class="viewer-rotate-btn is-active" data-rotate="off" title="Detener el giro automático">⏸ Pausar</button>
@@ -322,6 +322,20 @@
     controls.autoRotateSpeed = 1.4;
     controls.minDistance = 2;
     controls.maxDistance = 14;
+
+    /* La rueda y el dedo son de la PÁGINA: pasar el ratón por el visor
+       mientras se hace scroll no debe atrapar la rueda ni hacer zoom. Zoom
+       solo con Ctrl/⌘ + rueda (o pellizco en el trackpad, que llega como
+       Ctrl + rueda; Lenis ignora esos eventos). En táctil, deslizar en
+       vertical baja la página y en horizontal gira la pieza. */
+    controls.enableZoom = false;
+    viewerBox.addEventListener('wheel', (e) => {
+      controls.enableZoom = e.ctrlKey || e.metaKey;   // se decide ANTES de que OrbitControls lea el evento
+    }, { capture: true, passive: true });
+    viewerBox.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'touch') controls.enableZoom = true;   // pellizco táctil (2 dedos)
+    }, { capture: true });
+    viewerBox.style.touchAction = 'pan-y';                        // OrbitControls pone 'none' (atrapaba el scroll táctil)
 
     /* Luces */
     const key = new THREE.DirectionalLight(0xffffff, 2.2);
@@ -1015,7 +1029,9 @@
     const tmpColor = new THREE.Color();
 
     function composeTargets() {
-      const i = smooth(S.intro), s = smooth(S.scrap), c = smooth(S.config);
+      // La cámara de la historia se queda en la pose de "plegado" al llegar al
+      // configurador (c = 0): la escena sube con la página (ver tick()).
+      const i = smooth(S.intro), s = smooth(S.scrap), c = 0;
       lerpArr(tmpA, KF.hero.cam, KF.laser.cam, i);
       lerpArr(tmpB, KF.laser.cam, KF.fold.cam, s); tmpA.lerp(tmpB, s);
       lerpArr(tmpB, KF.fold.cam, KF.config.cam, c); tmpA.lerp(tmpB, c);
@@ -1036,8 +1052,8 @@
     /* ---------------- Bucle de render ---------------- */
     const clock = new THREE.Clock();
     let lastCut = 0, first = true;
+    let storyShifted = false;
     const BASE_FOV = camera.fov;
-    let fovKick = 0, spinKick = 0;
 
     function tick() {
       const dt = Math.min(clock.getDelta(), 0.05);
@@ -1049,7 +1065,12 @@
       // Cámara: guionizada por el scroll salvo dentro del configurador, donde
       // el usuario orbita a mano (sin auto-rotación). Se cede el control una
       // sola vez al entrar/salir para no pelear con OrbitControls cada frame.
-      const wantOrbit = c > 0.5;
+      // Se entra al visor del configurador cuando la sección ya cubre casi toda
+      // la pantalla (la escena de la historia ha subido fuera de vista) y se
+      // sale un poco más abajo: el margen evita parpadeos en el límite.
+      const secTop = configSection.getBoundingClientRect().top;
+      const vh = window.innerHeight;
+      const wantOrbit = orbitOn ? secTop < vh * 0.35 : secTop < vh * 0.2;
       if (wantOrbit !== orbitOn) {
         orbitOn = wantOrbit;
         controls.enabled = orbitOn;
@@ -1058,7 +1079,6 @@
           partRoot.position.set(0, 0, 0);
           partRoot.rotation.set(0, 0, 0);
           partRoot.scale.setScalar(1);
-          fovKick = 0;
           camera.fov = BASE_FOV;
           camera.updateProjectionMatrix();
           partRoot.updateMatrixWorld(true);
@@ -1076,13 +1096,11 @@
         camPos.lerp(tg.cam, 1 - Math.pow(0.001, dt));
         camLook.lerp(tg.look, 1 - Math.pow(0.001, dt));
         camera.position.copy(camPos);
-        // Entrada: la cámara llega desde lejos (FX.k 0 → 1) y se aleja un poco más con la velocidad del scroll
+        // Entrada: la cámara llega desde lejos (FX.k 0 → 1) solo al cargar la página.
+        // (Sin efectos ligados a la velocidad del scroll: la pieza no da tirones
+        // ni cambia de zoom al deslizar.)
         camera.position.sub(camLook).multiplyScalar(1 + 0.75 * (1 - FX.k)).add(camLook);
         camera.lookAt(camLook);
-        // Zoom de velocidad: el FOV se abre al hacer scroll rápido
-        fovKick = THREE.MathUtils.damp(fovKick, Math.min(9, Math.abs(FX.vel) * 0.1), 4, dt);
-        const fov = BASE_FOV + fovKick;
-        if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
       }
 
       // Composición de la pieza (estática una vez en el configurador: el
@@ -1091,18 +1109,18 @@
         partRoot.position.x = THREE.MathUtils.damp(partRoot.position.x, tg.x, 5, dt);
         partRoot.position.y = tg.y + Math.sin(t * 1.1) * 0.06 * heroW;
         const foldSpin = S.fold * 0.75 - 0.2 * S.fold;
-        // El scroll rápido da un latigazo a la pieza (kick) y la entrada la hace girar y crecer (FX.k)
-        spinKick = THREE.MathUtils.damp(spinKick, THREE.MathUtils.clamp(FX.vel * 0.02, -0.5, 0.5), 3, dt);
-        partRoot.rotation.y = heroW * (Math.sin(t * 0.35) * 0.25 - 0.35) + (1 - heroW) * (1 - c) * foldSpin + c * 0.55
-          + spinKick + (1 - FX.k) * 2.4;
-        partRoot.rotation.x = heroW * 0.18 + S.fold * (1 - c) * 0.12;
+        // La entrada (al cargar) la hace girar y crecer (FX.k). Al llegar al
+        // configurador la pieza mantiene la pose de "plegado": no gira con el scroll.
+        partRoot.rotation.y = heroW * (Math.sin(t * 0.35) * 0.25 - 0.35) + (1 - heroW) * foldSpin
+          + (1 - FX.k) * 2.4;
+        partRoot.rotation.x = heroW * 0.18 + S.fold * 0.12;
         partRoot.rotation.z = heroW * -0.06;
         partRoot.scale.setScalar(0.55 + 0.45 * FX.k);
       }
 
       // Polvo: deriva lento, se arremolina con el scroll y se apaga en el configurador
       dust.visible = !orbitOn;
-      dust.rotation.y = t * 0.015 + spinKick * 0.6;
+      dust.rotation.y = t * 0.015;
       dust.position.y = Math.sin(t * 0.2) * 0.3;
 
       // Corte láser
@@ -1195,7 +1213,7 @@
       blankMat.metalness = metalMat.metalness;
 
       // Cruce maqueta -> pieza real configurada por el cliente
-      const showParam = c > 0.5;
+      const showParam = orbitOn;
       blank.visible = !showParam;
       if (paramGroup) paramGroup.visible = showParam;
       if (sweep.old) sweep.old.visible = showParam;
@@ -1221,19 +1239,22 @@
           renderer.setScissorTest(false);
         }
       } else {
-        // Mientras el configurador entra en pantalla, la maqueta de la
-        // historia solo se dibuja POR ENCIMA de la sección (efecto telón):
-        // nunca pisa el título "Tu pieza. Tu precio. Ahora." ni sus etiquetas.
-        const secTop = configSection.getBoundingClientRect().top;
-        const H = window.innerHeight;
-        if (secTop >= H) {
+        // Mientras el configurador entra en pantalla, la escena de la historia
+        // SUBE con la página (desplazamiento de proyección = lo que ha subido la
+        // sección), como cualquier otro contenido, y se recorta por encima de la
+        // sección: nunca pisa "Tu pieza. Tu precio. Ahora.".
+        const W = window.innerWidth;
+        if (secTop >= vh) {
+          if (storyShifted) { camera.clearViewOffset(); storyShifted = false; }
           renderer.render(scene, camera);
         } else {
+          camera.setViewOffset(W, vh, 0, vh - secTop, W, vh);
+          storyShifted = true;
           renderer.setScissorTest(false);
           renderer.clear();
           if (secTop > 0) {
             renderer.setScissorTest(true);
-            renderer.setScissor(0, H - secTop, window.innerWidth, secTop);
+            renderer.setScissor(0, vh - secTop, W, secTop);
             renderer.render(scene, camera);
             renderer.setScissorTest(false);
           }
