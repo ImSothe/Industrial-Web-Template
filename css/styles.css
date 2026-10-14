@@ -274,7 +274,7 @@ button { cursor: pointer; }
   height: clamp(280px, 46vh, 440px);
   border-radius: var(--radius); border: 1px solid var(--line);
   background: radial-gradient(circle at 50% 35%, rgba(255,255,255,0.035), transparent 70%);
-  cursor: grab; touch-action: none;
+  cursor: grab; touch-action: pan-y;
 }
 .config-viewer:active { cursor: grabbing; }
 .config-viewer .viewer-controls { right: 12px; bottom: 12px; }
