@@ -133,8 +133,11 @@
                debajo de los textos. La pieza se encuadra y se recorta a esta
                caja (ver fitConfigView / tick en el módulo de abajo). -->
           <div class="config-viewer" id="configViewer" data-cursor="Arrastra" role="img" aria-label="Vista 3D interactiva de tu pieza">
-            <span class="config-viewer-hint mono">Arrastra para girar · Ctrl + rueda para zoom</span>
-            <div class="viewer-controls" id="viewerControls" role="group" aria-label="Rotación de la vista 3D">
+            <span class="config-viewer-hint mono">Arrastra para girar · clic y rueda para zoom</span>
+            <span class="config-viewer-toast" id="viewerToast" role="status" aria-live="polite"></span>
+            <div class="viewer-controls" id="viewerControls" role="group" aria-label="Controles de la vista 3D">
+              <button type="button" class="viewer-rotate-btn viewer-zoom-btn" data-zoom="in" title="Acercar" aria-label="Acercar">+</button>
+              <button type="button" class="viewer-rotate-btn viewer-zoom-btn" data-zoom="out" title="Alejar" aria-label="Alejar">−</button>
               <button type="button" class="viewer-rotate-btn" data-rotate="on" title="Girar la pieza automáticamente">▶ Rotar</button>
               <button type="button" class="viewer-rotate-btn is-active" data-rotate="off" title="Detener el giro automático">⏸ Pausar</button>
             </div>
@@ -323,18 +326,44 @@
     controls.minDistance = 2;
     controls.maxDistance = 14;
 
-    /* La rueda y el dedo son de la PÁGINA: pasar el ratón por el visor
-       mientras se hace scroll no debe atrapar la rueda ni hacer zoom. Zoom
-       solo con Ctrl/⌘ + rueda (o pellizco en el trackpad, que llega como
-       Ctrl + rueda; Lenis ignora esos eventos). En táctil, deslizar en
-       vertical baja la página y en horizontal gira la pieza. */
+    /* Rueda y dedo son de la PÁGINA hasta que el usuario "activa" el visor:
+       - Clic dentro del visor -> la rueda hace zoom (borde azul) hasta que el
+         ratón sale de él. Sin clic, la rueda baja la página y aparece un aviso.
+       - Ctrl/⌘ + rueda o pellizco en el trackpad: zoom siempre.
+       - Botones + / − del visor.
+       - Táctil: deslizar en vertical baja la página, en horizontal gira la
+         pieza, pellizcar hace zoom. */
     controls.enableZoom = false;
-    viewerBox.addEventListener('wheel', (e) => {
-      controls.enableZoom = e.ctrlKey || e.metaKey;   // se decide ANTES de que OrbitControls lea el evento
-    }, { capture: true, passive: true });
+    const viewerToast = document.getElementById('viewerToast');
+    let zoomArmed = false;
+    let toastTimer = 0;
+    function setZoomArmed(on) {
+      zoomArmed = on;
+      viewerBox.classList.toggle('is-armed', on);
+      // Con Lenis (scroll suave), excluir el visor mientras la rueda es zoom
+      if (on) viewerBox.setAttribute('data-lenis-prevent', ''); else viewerBox.removeAttribute('data-lenis-prevent');
+    }
+    function showViewerToast(text) {
+      viewerToast.textContent = text;
+      viewerToast.classList.add('is-on');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => viewerToast.classList.remove('is-on'), 1400);
+    }
     viewerBox.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'touch') controls.enableZoom = true;   // pellizco táctil (2 dedos)
+      if (e.pointerType === 'touch') { controls.enableZoom = true; return; }   // pellizco táctil
+      if (!e.target.closest('#viewerControls')) setZoomArmed(true);
     }, { capture: true });
+    viewerBox.addEventListener('pointerleave', () => setZoomArmed(false));
+    viewerBox.addEventListener('wheel', (e) => {
+      controls.enableZoom = zoomArmed || e.ctrlKey || e.metaKey;   // se decide ANTES de que OrbitControls lea el evento
+      if (!controls.enableZoom && controls.enabled) showViewerToast('Haz clic en la pieza para hacer zoom con la rueda');
+    }, { capture: true, passive: true });
+    function zoomBy(factor) {
+      const off = camera.position.clone().sub(controls.target);
+      const d = THREE.MathUtils.clamp(off.length() * factor, controls.minDistance, controls.maxDistance);
+      const to = controls.target.clone().add(off.setLength(d));
+      gsap.to(camera.position, { x: to.x, y: to.y, z: to.z, duration: 0.35, ease: 'power2.out', overwrite: true, onUpdate: () => controls.update() });
+    }
     viewerBox.style.touchAction = 'pan-y';                        // OrbitControls pone 'none' (atrapaba el scroll táctil)
 
     /* Luces */
@@ -818,7 +847,7 @@
       fittedSize = `${Math.round(r.width)}x${Math.round(r.height)}x${r.W}x${r.H}`;
       applyViewerOffset(r);
       const fit = fitCameraToObject(THREE, camera, controls, paramGroup, {
-        keepDirection, margin: 0.95, regionFracW: r.width / r.W, regionFracH: r.height / r.H,
+        keepDirection, margin: 0.78, regionFracW: r.width / r.W, regionFracH: r.height / r.H,
         direction: DEFAULT_VIEW_DIRECTION(THREE),
       });
       if (!fit) return;
@@ -852,6 +881,9 @@
 
     const viewerControls = document.getElementById('viewerControls');
     viewerControls.addEventListener('pointerdown', (e) => e.stopPropagation());
+    viewerControls.querySelectorAll('[data-zoom]').forEach((btn) => {
+      btn.addEventListener('click', () => zoomBy(btn.dataset.zoom === 'in' ? 0.8 : 1.25));
+    });
     viewerControls.querySelectorAll('[data-rotate]').forEach((btn) => {
       btn.addEventListener('click', () => {
         controls.autoRotate = btn.dataset.rotate === 'on';
