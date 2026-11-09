@@ -1,8 +1,8 @@
 # Industrial Web Template
 
-**A B2B 3D Geometry Configurator & Order Management System** — a sanitized, generic template of a real-world industrial web platform for made-to-measure sheet-metal parts.
+**A B2B 3D Geometry Configurator & Order Management System** — a generic template, inspired by a real-world industrial workflow, for made-to-measure sheet-metal parts.
 
-> **Personal project based on a real industrial environment, fully sanitized of corporate data.** No company names, inventory, prices, servers, URLs or credentials from the original environment are in this repository. Every company-specific value is a placeholder (`[YOUR_COMPANY]`, `your-company.example`) and all prices are fictitious demo values.
+> **Independent personal project, not company code.** I designed and built this on my own initiative, as a proposal to present to the company where I work. It was not commissioned and was not purchased: the code and the design are mine, and no company owns or has delivered any part of it. It is inspired by how a sheet-metal workshop works, and it contains no corporate data. No company names, inventory, prices, servers, URLs or credentials from the original environment are in this repository. Every company-specific value is a placeholder (`[YOUR_COMPANY]`, `your-company.example`) and all prices are fictitious demo values.
 
 ## Scope: this is a front-end showcase
 
