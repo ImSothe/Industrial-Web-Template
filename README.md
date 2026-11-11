@@ -2,7 +2,7 @@
 
 **A B2B 3D Geometry Configurator & Order Management System** — a generic template of an industrial web platform for made-to-measure sheet-metal parts.
 
-> **Independent project, built on my own initiative as a proposal for a prospective client. No agreement was reached and no work was commissioned or paid for, so the code is mine and is published here under MIT.** It is modelled on an industrial sheet-metal workflow and contains no third-party company data: no company names, inventory, prices, servers, URLs or credentials. Every company-specific value is a placeholder (`[YOUR_COMPANY]`, `your-company.example`) and all prices are fictitious demo values.
+> **Independent project, built on my own initiative as a proposal for a prospective client. No agreement was reached and no work was commissioned or paid for, so the code is mine and is published here under the PolyForm Noncommercial licence.** It is modelled on an industrial sheet-metal workflow and contains no third-party company data: no company names, inventory, prices, servers, URLs or credentials. Every company-specific value is a placeholder (`[YOUR_COMPANY]`, `your-company.example`) and all prices are fictitious demo values.
 
 ## Scope: this is a front-end showcase
 
@@ -89,4 +89,4 @@ Then in `js/config.js` set `EMPLOYEE_CONFIG.authMode = 'server'`, `SQLPYME_CONFI
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[PolyForm Noncommercial 1.0.0](LICENSE): free to use, study and modify for any noncommercial purpose; commercial use is reserved to the author. Versions published before this change were released under the MIT licence, which still applies to those versions.
